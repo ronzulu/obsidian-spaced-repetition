@@ -1,4 +1,19 @@
 import { CardType } from "./Question";
+import { SRSettings } from "./settings";
+
+export function parseUsingSettings(text: string, settings: SRSettings): [CardType, string, number][] {
+    const result: [CardType, string, number][] = parse(
+        text,
+        settings.singleLineCardSeparator,
+        settings.singleLineReversedCardSeparator,
+        settings.multilineCardSeparator,
+        settings.multilineReversedCardSeparator,
+        settings.convertHighlightsToClozes,
+        settings.convertBoldTextToClozes,
+        settings.convertCurlyBracketsToClozes,
+    );
+    return result;
+}
 
 /**
  * Returns flashcards found in `text`

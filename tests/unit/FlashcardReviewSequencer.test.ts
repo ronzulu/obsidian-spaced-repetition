@@ -11,30 +11,18 @@ import {
     IFlashcardReviewSequencer,
 } from "src/FlashcardReviewSequencer";
 import { TopicPath } from "src/TopicPath";
-import { CardListType, Deck, DeckTreeFilter } from "src/Deck";
+import { CardListType, Deck } from "src/Deck";
 import { DEFAULT_SETTINGS, SRSettings } from "src/settings";
 import { SampleItemDecks } from "./SampleItems";
 import { UnitTestSRFile } from "src/SRFile";
 import { ReviewResponse } from "src/scheduling";
-import {
-    setupStaticDateProvider,
-    setupStaticDateProvider_20230906,
-    setupStaticDateProvider_OriginDatePlusDays,
-} from "src/util/DateProvider";
+import { setupStaticDateProvider_20230906 } from "src/util/DateProvider";
 import moment from "moment";
 import { INoteEaseList, NoteEaseList } from "src/NoteEaseList";
 import { QuestionPostponementList, IQuestionPostponementList } from "src/QuestionPostponementList";
 import { order_DueFirst_Sequential } from "./DeckTreeIterator.test";
 
-let clozeQuestion1: string = "This single ==question== turns into ==3 separate== ==cards==";
-let clozeQuestion1Card1: RegExp = /This single.+\.\.\..+turns into 3 separate cards/;
-let clozeQuestion1Card2: RegExp = /This single question turns into.+\.\.\..+cards/;
-let clozeQuestion1Card3: RegExp = /This single question turns into 3 separate.+\.\.\./;
-
 class TestContext {
-    settings: SRSettings;
-    reviewMode: FlashcardReviewMode;
-    iteratorOrder: IIteratorOrder;
     cardSequencer: IDeckTreeIterator;
     noteEaseList: INoteEaseList;
     cardScheduleCalculator: CardScheduleCalculator;
@@ -48,43 +36,13 @@ class TestContext {
         Object.assign(this, init);
     }
 
-    async resetContext(text: string, daysAfterOrigin: number): Promise<void> {
-        this.originalText = text;
-        this.file.content = text;
-        let cardSequencer: IDeckTreeIterator = new DeckTreeIterator(
-            this.iteratorOrder,
-            IteratorDeckSource.UpdatedByIterator,
-        );
-        let reviewSequencer: IFlashcardReviewSequencer = new FlashcardReviewSequencer(
-            this.reviewMode,
-            cardSequencer,
-            this.settings,
-            this.cardScheduleCalculator,
-            this.questionPostponementList,
-        );
-        setupStaticDateProvider_OriginDatePlusDays(daysAfterOrigin);
-
-        await this.setSequencerDeckTreeFromOriginalText();
-    }
-
-    // Within the actual application, clearing the postponement list is done in main.ts, and therefore not
-    // unit testable. Within the unit tests, this is used instead.
-    clearQuestionPostponementList(): void {
-        this.questionPostponementList.clear();
-    }
-
     async setSequencerDeckTreeFromOriginalText(): Promise<Deck> {
-        const deckTree: Deck = await SampleItemDecks.createDeckFromFile(
+        let deck: Deck = await SampleItemDecks.createDeckFromFile(
             this.file,
             new TopicPath(["Root"]),
         );
-        const remainingDeckTree = DeckTreeFilter.filterForRemainingCards(
-            this.questionPostponementList,
-            deckTree,
-            this.reviewMode,
-        );
-        this.reviewSequencer.setDeckTree(deckTree, remainingDeckTree);
-        return deckTree;
+        this.reviewSequencer.setDeckTree(deck, deck);
+        return deck;
     }
 
     static Create(
@@ -118,9 +76,6 @@ class TestContext {
         var file: UnitTestSRFile = new UnitTestSRFile(text, fakeFilePath);
 
         let result: TestContext = new TestContext({
-            settings,
-            reviewMode,
-            iteratorOrder,
             cardSequencer,
             noteEaseList,
             cardScheduleCalculator,
@@ -272,33 +227,19 @@ async function setupSample2(reviewMode: FlashcardReviewMode): Promise<TestContex
     return c;
 }
 
-async function checkEmptyPostponementList(
-    burySiblingCards: boolean,
-    flashcardReviewMode: FlashcardReviewMode,
-): Promise<void> {
-    let settings: SRSettings = { ...DEFAULT_SETTINGS };
-    settings.burySiblingCards = burySiblingCards;
-
-    let c: TestContext = await setupSample1(flashcardReviewMode, settings);
-    expect(c.questionPostponementList.list.length).toEqual(0);
-    expect(c.reviewSequencer.currentCard.front).toEqual("Q2");
-
-    // Skip over these 2 questions
-    skipThenCheckCardFront(c.reviewSequencer, "Q1");
-    skipThenCheckCardFront(c.reviewSequencer, "Q3");
-
-    expect(c.questionPostponementList.list.length).toEqual(0);
+function skipCardThenCheckCardFront(sequencer: IFlashcardReviewSequencer, expectedFront: string): void {
+    sequencer.skipCurrentCard();
+    expect(sequencer.currentCard.front).toEqual(expectedFront);
 }
 
-function skipThenCheckCardFront(sequencer: IFlashcardReviewSequencer, expectedFront: string): void {
-    sequencer.skipCurrentCard();
+function skipQuestionThenCheckCardFront(sequencer: IFlashcardReviewSequencer, expectedFront: string): void {
+    sequencer.skipCurrentQuestion();
     expect(sequencer.currentCard.front).toEqual(expectedFront);
 }
 
 //////////////////////////////////////////////////////////////////////
 
-// Do this before each test, as some tests change the "current" date
-beforeEach(() => {
+beforeAll(() => {
     setupStaticDateProvider_20230906();
 });
 
@@ -339,14 +280,14 @@ Q3::A3`;
     });
 });
 
-describe("skipCurrentCard", () => {
+describe("skipCurrentQuestion", () => {
     test("Simple test", async () => {
         let c: TestContext = await setupSample1(FlashcardReviewMode.Review, DEFAULT_SETTINGS);
         expect(c.reviewSequencer.currentCard.front).toEqual("Q2");
 
         // No more due cards after current card, so we expect the first new card for topic #flashcards
-        skipThenCheckCardFront(c.reviewSequencer, "Q1");
-        skipThenCheckCardFront(c.reviewSequencer, "Q3");
+        skipQuestionThenCheckCardFront(c.reviewSequencer, "Q1");
+        skipQuestionThenCheckCardFront(c.reviewSequencer, "Q3");
     });
 
     test("Skip repeatedly until no more", async () => {
@@ -354,17 +295,18 @@ describe("skipCurrentCard", () => {
         expect(c.reviewSequencer.currentCard.front).toEqual("Q2");
 
         // No more due cards after current card, so we expect the first new card for topic #flashcards
-        skipThenCheckCardFront(c.reviewSequencer, "Q1");
-        skipThenCheckCardFront(c.reviewSequencer, "Q3");
+        skipQuestionThenCheckCardFront(c.reviewSequencer, "Q1");
+        skipQuestionThenCheckCardFront(c.reviewSequencer, "Q3");
 
-        skipThenCheckCardFront(c.reviewSequencer, "Q4");
-        skipThenCheckCardFront(c.reviewSequencer, "Q5");
-        skipThenCheckCardFront(c.reviewSequencer, "Q6");
+        skipQuestionThenCheckCardFront(c.reviewSequencer, "Q4");
+        skipQuestionThenCheckCardFront(c.reviewSequencer, "Q5");
+        skipQuestionThenCheckCardFront(c.reviewSequencer, "Q6");
 
-        skipAndCheckNoRemainingCards(c);
+        c.reviewSequencer.skipCurrentQuestion();
+        expect(c.reviewSequencer.hasCurrentCard).toEqual(false);
     });
 
-    test("Skipping a card skips all sibling cards", async () => {
+    test("Skipping a question skips all cards within it", async () => {
         let text: string = `
 #flashcards Q1::A1
 <!--SR:!2023-09-02,4,270-->
@@ -389,41 +331,74 @@ describe("skipCurrentCard", () => {
         expect(c.reviewSequencer.currentQuestion.cards.length).toEqual(1);
         expect(c.reviewSequencer.currentCard.front).toEqual("Q1");
 
-        skipThenCheckCardFront(c.reviewSequencer, "Q2");
+        skipQuestionThenCheckCardFront(c.reviewSequencer, "Q2");
         expect(c.reviewSequencer.currentQuestion.cards.length).toEqual(2);
 
         // Skipping Q2 skips over both Q2::A2 and A2::Q2, goes straight to Q3
-        skipThenCheckCardFront(c.reviewSequencer, "Q3");
+        skipQuestionThenCheckCardFront(c.reviewSequencer, "Q3");
         expect(c.reviewSequencer.currentQuestion.cards.length).toEqual(1);
 
         // Skip over Q3
-        c.reviewSequencer.skipCurrentCard();
+        c.reviewSequencer.skipCurrentQuestion();
         expect(c.reviewSequencer.currentQuestion.cards[0].front).toMatch(/This single/);
         expect(c.reviewSequencer.currentQuestion.cards.length).toEqual(3);
 
         // Skip over the cloze, skips all 3 cards, no cards left
-        c.reviewSequencer.skipCurrentCard();
+        c.reviewSequencer.skipCurrentQuestion();
         expect(c.reviewSequencer.hasCurrentCard).toEqual(false);
     });
 
-    describe("Checking postponement list (skipped cards)", () => {
+    describe("Checking postponement list", () => {
         describe("FlashcardReviewMode.Review", () => {
             test("burySiblingCards=false - skipped question not added to postponement list", async () => {
-                checkEmptyPostponementList(false, FlashcardReviewMode.Review);
+                let settings: SRSettings = { ...DEFAULT_SETTINGS };
+                settings.burySiblingCards = false;
+
+                let c: TestContext = await setupSample1(FlashcardReviewMode.Review, settings);
+                expect(c.questionPostponementList.list.length).toEqual(0);
+                expect(c.reviewSequencer.currentCard.front).toEqual("Q2");
+
+                // Skip over these 2 questions
+                skipQuestionThenCheckCardFront(c.reviewSequencer, "Q1");
+                skipQuestionThenCheckCardFront(c.reviewSequencer, "Q3");
+
+                expect(c.questionPostponementList.list.length).toEqual(0);
             });
 
-            // https://github.com/st3v3nmw/obsidian-spaced-repetition/issues/760
-            test("burySiblingCards=true - skipped question not added to postponement list", async () => {
-                checkEmptyPostponementList(true, FlashcardReviewMode.Review);
+            test("burySiblingCards=true - skipped question added to postponement list", async () => {
+                let settings: SRSettings = { ...DEFAULT_SETTINGS };
+                settings.burySiblingCards = true;
+
+                let c: TestContext = await setupSample1(FlashcardReviewMode.Review, settings);
+                expect(c.questionPostponementList.list.length).toEqual(0);
+                expect(c.reviewSequencer.currentCard.front).toEqual("Q2");
+
+                // Skip over 2 questions
+                skipQuestionThenCheckCardFront(c.reviewSequencer, "Q1");
+                skipQuestionThenCheckCardFront(c.reviewSequencer, "Q3");
+
+                expect(c.questionPostponementList.list.length).toEqual(2);
             });
         });
 
         describe("FlashcardReviewMode.Cram", () => {
             test("Cram mode - skipped question not added to postponement list", async () => {
-                checkEmptyPostponementList(false, FlashcardReviewMode.Cram);
+                let c: TestContext = await setupSample1(FlashcardReviewMode.Cram, DEFAULT_SETTINGS);
+                expect(c.questionPostponementList.list.length).toEqual(0);
+                expect(c.reviewSequencer.currentCard.front).toEqual("Q2");
+
+                // Skip over these questions
+                skipQuestionThenCheckCardFront(c.reviewSequencer, "Q1");
+                skipQuestionThenCheckCardFront(c.reviewSequencer, "Q3");
+
+                expect(c.questionPostponementList.list.length).toEqual(0);
             });
         });
     });
+    // No postponement during cramming
+    // Deletion of sibling cards after text modification
+    // Deletion of sibling cards after card skip
+    // Delete+postpone
 });
 
 describe("processReview", () => {
@@ -461,7 +436,7 @@ describe("processReview", () => {
                     interval: 5,
                 });
 
-                c.reviewSequencer.skipCurrentCard();
+                c.reviewSequencer.skipCurrentQuestion();
                 card = c.reviewSequencer.currentCard;
                 expect(card.front).toEqual("Q3");
                 expect(card.scheduleInfo).toMatchObject({
@@ -470,7 +445,7 @@ describe("processReview", () => {
                 });
 
                 // After skipping Q3, we should see Q1 the reset card with updated ease/interval
-                c.reviewSequencer.skipCurrentCard();
+                c.reviewSequencer.skipCurrentQuestion();
                 card = c.reviewSequencer.currentCard;
                 expect(card.front).toEqual("Q1");
                 expect(card.scheduleInfo).toMatchObject({
@@ -493,195 +468,6 @@ describe("processReview", () => {
                 await checkReviewResponse_ReviewMode(ReviewResponse.Easy, expected);
             });
         });
-
-        describe("Checking postponement list (after card reviewed, burySiblingCards=false)", () => {
-            test("reviewed question not added to postponement list; sibling cards are sequenced (not deleted)", async () => {
-                let settings: SRSettings = { ...DEFAULT_SETTINGS };
-                settings.burySiblingCards = false;
-
-                let text: string = `
-#flashcards This single ==question== turns into ==3 separate== ==cards==
-
-Q1::A1
-    `;
-
-                let c: TestContext = TestContext.Create(
-                    order_DueFirst_Sequential,
-                    FlashcardReviewMode.Review,
-                    settings,
-                    text,
-                );
-                await c.setSequencerDeckTreeFromOriginalText();
-                expect(c.cardSequencer.currentDeck.getCardCount(CardListType.All, false)).toEqual(
-                    4,
-                );
-
-                expect(c.reviewSequencer.currentCard.front).toMatch(clozeQuestion1Card1);
-
-                // After reviewing, sibling cards still present
-                await c.reviewSequencer.processReview(ReviewResponse.Easy);
-                expect(c.reviewSequencer.currentCard.front).toMatch(clozeQuestion1Card2);
-                await c.reviewSequencer.processReview(ReviewResponse.Good);
-                expect(c.reviewSequencer.currentCard.front).toMatch(clozeQuestion1Card3);
-
-                // After reviewing last sibling, move to next card
-                await c.reviewSequencer.processReview(ReviewResponse.Hard);
-                expect(c.reviewSequencer.currentCard.front).toEqual("Q1");
-
-                skipAndCheckNoRemainingCards(c);
-                checkQuestionPostponementListCount(c, 0);
-            });
-        });
-
-        describe("Checking postponement list (after card reviewed, burySiblingCards=true)", () => {
-            test("Question with multiple cards; reviewed question added to postponement list; sibling cards are buried", async () => {
-                let settings: SRSettings = { ...DEFAULT_SETTINGS };
-                settings.burySiblingCards = true;
-
-                let text: string = `
-#flashcards ${clozeQuestion1}
-
-Q1::A1
-    `;
-
-                let c: TestContext = TestContext.Create(
-                    order_DueFirst_Sequential,
-                    FlashcardReviewMode.Review,
-                    settings,
-                    text,
-                );
-                await c.setSequencerDeckTreeFromOriginalText();
-                expect(c.cardSequencer.currentDeck.getCardCount(CardListType.All, false)).toEqual(
-                    4,
-                );
-
-                expect(c.reviewSequencer.currentCard.front).toMatch(clozeQuestion1Card1);
-
-                // After reviewing, sibling cards skipped
-                await c.reviewSequencer.processReview(ReviewResponse.Easy);
-                expect(c.reviewSequencer.currentCard.front).toEqual("Q1");
-
-                skipAndCheckNoRemainingCards(c);
-
-                // Single question on the list ()
-                checkQuestionPostponementListCount(c, 1);
-            });
-
-            test("Question with multiple cards; card reviewed as hard, after restarting the review process, that whole question skipped and next question is shown", async () => {
-                let settings: SRSettings = { ...DEFAULT_SETTINGS };
-                settings.burySiblingCards = true;
-
-                let text: string = `
-#flashcards ${clozeQuestion1}
-
-Q1::A1
-    `;
-
-                // Simulate performing the review on 2023-09-06
-                // Check that the reviewed card, scheduled for following day; 2 buried cards have schedule dates with magic number indicating unreviewed card ("2000-01-01")
-                setupStaticDateProvider_OriginDatePlusDays(0);
-                const c: TestContext = TestContext.Create(
-                    order_DueFirst_Sequential,
-                    FlashcardReviewMode.Review,
-                    settings,
-                    text,
-                );
-                await c.setSequencerDeckTreeFromOriginalText();
-                expect(c.reviewSequencer.currentCard.front).toMatch(clozeQuestion1Card1);
-                await c.reviewSequencer.processReview(ReviewResponse.Hard);
-                text = c.file.content;
-                let expectedCard1Review: string = "2023-09-07,1,230";
-                expect(text).toContain(
-                    `<!--SR:!${expectedCard1Review}!2000-01-01,1,250!2000-01-01,1,250-->`,
-                );
-                checkQuestionPostponementListCount(c, 1);
-
-                // Reset the context to the new content (that now includes the schedule info); simulate same day
-                // First question not shown (as all of its cards have been "buried"); second question shown
-                let daysAfterOrigin: number = 0;
-                await c.resetContext(text, daysAfterOrigin);
-                expect(c.reviewSequencer.currentCard.front).toEqual("Q1");
-
-                // Simulate next day 2023-09-07
-                // First card (rated as hard the previous day) is reshown; now reviewed as Good
-                c.clearQuestionPostponementList();
-                daysAfterOrigin = 1;
-                await c.resetContext(text, daysAfterOrigin);
-                expect(c.reviewSequencer.currentCard.front).toMatch(clozeQuestion1Card1);
-                await c.reviewSequencer.processReview(ReviewResponse.Good);
-                text = c.file.content;
-                expectedCard1Review = "2023-09-09,2,230";
-                expect(text).toContain(
-                    `<!--SR:!${expectedCard1Review}!2000-01-01,1,250!2000-01-01,1,250-->`,
-                );
-                expect(c.reviewSequencer.currentCard.front).toEqual("Q1");
-
-                // Simulate next day 2023-09-08
-                // First card (rated as Good the previous day) is skipped; second sibling shown
-                // Post review of second sibling, third sibling skipped and subsequent question Q1 shown
-                c.clearQuestionPostponementList();
-                daysAfterOrigin = 2;
-                await c.resetContext(text, daysAfterOrigin);
-                expect(c.reviewSequencer.currentCard.front).toMatch(clozeQuestion1Card2);
-                await c.reviewSequencer.processReview(ReviewResponse.Easy);
-                text = c.file.content;
-                expectedCard1Review = "2023-09-09,2,230";
-                let expectedCard2Review: string = "2023-09-12,4,270";
-                expect(text).toContain(
-                    `<!--SR:!${expectedCard1Review}!${expectedCard2Review}!2000-01-01,1,250-->`,
-                );
-                expect(c.reviewSequencer.currentCard.front).toEqual("Q1");
-            });
-
-            test("Question with single cards; card reviewed as hard, the question is NOT added to the postponement list", async () => {
-                let settings: SRSettings = { ...DEFAULT_SETTINGS };
-                settings.burySiblingCards = true;
-
-                // Question with a single card
-                let text: string = `#flashcards Q1::A1`;
-
-                // Create the test context
-                setupStaticDateProvider_OriginDatePlusDays(0);
-                const c: TestContext = TestContext.Create(
-                    order_DueFirst_Sequential,
-                    FlashcardReviewMode.Review,
-                    settings,
-                    text,
-                );
-                await c.setSequencerDeckTreeFromOriginalText();
-                expect(c.reviewSequencer.currentCard.front).toEqual("Q1");
-
-                // Review the card
-                await c.reviewSequencer.processReview(ReviewResponse.Hard);
-
-                // Check that there are no questions on the postponement list
-                checkQuestionPostponementListCount(c, 0);
-            });
-        });
-
-        test("Answer includes MathJax within $$", async () => {
-            let fileText: string = `#flashcards
-What is Newman's equation for gravitational force
-?
-$$\\huge F_g=\\frac {G m_1 m_2}{d^2}$$`;
-
-            let c: TestContext = TestContext.Create(
-                order_DueFirst_Sequential,
-                FlashcardReviewMode.Review,
-                DEFAULT_SETTINGS,
-                fileText,
-            );
-            await c.setSequencerDeckTreeFromOriginalText();
-            expect(c.reviewSequencer.currentCard.front).toContain("What is Newman's equation");
-
-            // Reviewing the card doesn't change the question, only adds the schedule info
-            await c.reviewSequencer.processReview(ReviewResponse.Easy);
-            let expectedFileText: string = `${fileText}
-<!--SR:!2023-09-10,4,270-->`;
-
-            let actual: string = await c.file.read();
-            expect(actual).toEqual(expectedFileText);
-        });
     });
 
     describe("FlashcardReviewMode.Cram", () => {
@@ -690,10 +476,10 @@ $$\\huge F_g=\\frac {G m_1 m_2}{d^2}$$`;
                 // [Q1, Q2, Q3] review Q1, then current becomes Q2
                 let c: TestContext = await checkReviewResponse_CramMode(ReviewResponse.Easy);
                 expect(c.reviewSequencer.currentCard.front).toEqual("Q2");
-                skipThenCheckCardFront(c.reviewSequencer, "Q3");
-                skipThenCheckCardFront(c.reviewSequencer, "Q4");
+                skipQuestionThenCheckCardFront(c.reviewSequencer, "Q3");
+                skipQuestionThenCheckCardFront(c.reviewSequencer, "Q4");
 
-                c.reviewSequencer.skipCurrentCard();
+                c.reviewSequencer.skipCurrentQuestion();
                 expect(c.reviewSequencer.hasCurrentCard).toEqual(false);
             });
         });
@@ -703,11 +489,11 @@ $$\\huge F_g=\\frac {G m_1 m_2}{d^2}$$`;
                 // [Q1, Q2, Q3] review Q1, then current becomes Q2
                 let c: TestContext = await checkReviewResponse_CramMode(ReviewResponse.Hard);
                 expect(c.reviewSequencer.currentCard.front).toEqual("Q2");
-                skipThenCheckCardFront(c.reviewSequencer, "Q3");
-                skipThenCheckCardFront(c.reviewSequencer, "Q4");
-                skipThenCheckCardFront(c.reviewSequencer, "Q1");
+                skipQuestionThenCheckCardFront(c.reviewSequencer, "Q3");
+                skipQuestionThenCheckCardFront(c.reviewSequencer, "Q4");
+                skipQuestionThenCheckCardFront(c.reviewSequencer, "Q1");
 
-                c.reviewSequencer.skipCurrentCard();
+                c.reviewSequencer.skipCurrentQuestion();
                 expect(c.reviewSequencer.hasCurrentCard).toEqual(false);
             });
         });
@@ -717,7 +503,8 @@ $$\\huge F_g=\\frac {G m_1 m_2}{d^2}$$`;
 describe("updateCurrentQuestionText", () => {
     let space: string = " ";
 
-    describe("Checking update to file", () => {
+    describe.only("Checking update to file - updated card treated as new", () => {
+
         describe("Single line card type; Settings - schedule on following line", () => {
             test("Question has schedule on following line before/after update", async () => {
                 let text: string = `
@@ -731,8 +518,7 @@ describe("updateCurrentQuestionText", () => {
                 let updatedQ: string = "A much more in depth question::A much more detailed answer";
                 let originalStr: string = `#flashcards Q2::A2
 <!--SR:!2023-09-02,4,270-->`;
-                let updatedStr: string = `#flashcards A much more in depth question::A much more detailed answer
-<!--SR:!2023-09-02,4,270-->`;
+                let updatedStr: string = `#flashcards A much more in depth question::A much more detailed answer`;
                 await checkUpdateCurrentQuestionText(
                     text,
                     updatedQ,
@@ -744,16 +530,16 @@ describe("updateCurrentQuestionText", () => {
 
             test("Question has schedule on same line (but pushed to following line due to settings)", async () => {
                 let text: string = `
-#flashcards Q1::A1
+    #flashcards Q1::A1
 
-#flashcards Q2::A2 <!--SR:!2023-09-02,4,270-->
+    #flashcards Q2::A2 <!--SR:!2023-09-02,4,270-->
 
-#flashcards Q3::A3`;
+    #flashcards Q3::A3`;
 
                 let updatedQ: string = "A much more in depth question::A much more detailed answer";
                 let originalStr: string = `#flashcards Q2::A2 <!--SR:!2023-09-02,4,270-->`;
                 let expectedUpdatedStr: string = `#flashcards A much more in depth question::A much more detailed answer
-<!--SR:!2023-09-02,4,270-->`;
+    <!--SR:!2023-09-02,4,270-->`;
                 await checkUpdateCurrentQuestionText(
                     text,
                     updatedQ,
@@ -770,11 +556,11 @@ describe("updateCurrentQuestionText", () => {
 
             test("Question has schedule on same line before/after", async () => {
                 let text1: string = `
-#flashcards Q1::A1
+    #flashcards Q1::A1
 
-#flashcards Q2::A2 <!--SR:!2023-09-02,4,270-->
+    #flashcards Q2::A2 <!--SR:!2023-09-02,4,270-->
 
-#flashcards Q3::A3`;
+    #flashcards Q3::A3`;
 
                 let updatedQ: string = "A much more in depth question::A much more detailed answer";
                 let originalStr: string = `#flashcards Q2::A2 <!--SR:!2023-09-02,4,270-->`;
@@ -790,53 +576,47 @@ describe("updateCurrentQuestionText", () => {
 
             test("Question has schedule on following line (but placed on same line due to settings)", async () => {
                 let text: string = `
-#flashcards Q1::A1
+    #flashcards Q1::A1
 
-#flashcards Q2::A2
-<!--SR:!2023-09-02,4,270-->
+    #flashcards Q2::A2
+    <!--SR:!2023-09-02,4,270-->
 
-#flashcards Q3::A3`;
+    #flashcards Q3::A3`;
 
                 let updatedQ: string = "A much more in depth question::A much more detailed answer";
                 let originalStr: string = `#flashcards Q2::A2
-<!--SR:!2023-09-02,4,270-->`;
+    <!--SR:!2023-09-02,4,270-->`;
                 let updatedStr: string = `#flashcards A much more in depth question::A much more detailed answer <!--SR:!2023-09-02,4,270-->`;
-                await checkUpdateCurrentQuestionText(
-                    text,
-                    updatedQ,
-                    originalStr,
-                    updatedStr,
-                    settings,
-                );
+                await checkUpdateCurrentQuestionText(text, updatedQ, originalStr, updatedStr, settings);
             });
         });
 
         describe("Multiline card type; Settings - schedule on following line", () => {
             test("Question starts immediately after tag; Existing schedule present", async () => {
                 let originalStr: string = `Q2
-?
-A2
-<!--SR:!2023-09-02,4,270-->`;
+    ?
+    A2
+    <!--SR:!2023-09-02,4,270-->`;
 
                 let text: string = `
-#flashcards Q1::A1
+    #flashcards Q1::A1
 
-#flashcards ${originalStr}
+    #flashcards ${originalStr}
 
-#flashcards Q3::A3`;
+    #flashcards Q3::A3`;
 
                 let updatedQ: string = `Multiline question
-Question starting immediately after tag
-?
-A2 (answer now includes more detail)
-extra answer line 2`;
+    Question starting immediately after tag
+    ?
+    A2 (answer now includes more detail)
+    extra answer line 2`;
 
                 let expectedUpdatedStr: string = `Multiline question
-Question starting immediately after tag
-?
-A2 (answer now includes more detail)
-extra answer line 2
-<!--SR:!2023-09-02,4,270-->`;
+    Question starting immediately after tag
+    ?
+    A2 (answer now includes more detail)
+    extra answer line 2
+    <!--SR:!2023-09-02,4,270-->`;
 
                 await checkUpdateCurrentQuestionText(
                     text,
@@ -849,29 +629,29 @@ extra answer line 2
 
             test("Question starts on same line as tag (after two spaces); Existing schedule present", async () => {
                 let originalStr: string = `Q2
-?
-A2
-<!--SR:!2023-09-02,4,270-->`;
+    ?
+    A2
+    <!--SR:!2023-09-02,4,270-->`;
 
                 let text: string = `
-#flashcards Q1::A1
+    #flashcards Q1::A1
 
-#flashcards${space}${space}${originalStr}
+    #flashcards${space}${space}${originalStr}
 
-#flashcards Q3::A3`;
+    #flashcards Q3::A3`;
 
                 let updatedQ: string = `Multiline question
-Question starting immediately after tag
-?
-A2 (answer now includes more detail)
-extra answer line 2`;
+    Question starting immediately after tag
+    ?
+    A2 (answer now includes more detail)
+    extra answer line 2`;
 
                 let expectedUpdatedStr: string = `Multiline question
-Question starting immediately after tag
-?
-A2 (answer now includes more detail)
-extra answer line 2
-<!--SR:!2023-09-02,4,270-->`;
+    Question starting immediately after tag
+    ?
+    A2 (answer now includes more detail)
+    extra answer line 2
+    <!--SR:!2023-09-02,4,270-->`;
 
                 await checkUpdateCurrentQuestionText(
                     text,
@@ -884,31 +664,31 @@ extra answer line 2
 
             test("Question starts line after tag; Existing schedule present", async () => {
                 let originalStr: string = `#flashcards
-Q2
-?
-A2
-<!--SR:!2023-09-02,4,270-->`;
+    Q2
+    ?
+    A2
+    <!--SR:!2023-09-02,4,270-->`;
 
                 let text: string = `
-#flashcards Q1::A1
+    #flashcards Q1::A1
 
-${originalStr}
+    ${originalStr}
 
-#flashcards Q3::A3`;
+    #flashcards Q3::A3`;
 
                 let updatedQ: string = `Multiline question
-Question starting line after tag
-?
-A2 (answer now includes more detail)
-extra answer line 2`;
+    Question starting line after tag
+    ?
+    A2 (answer now includes more detail)
+    extra answer line 2`;
 
                 let expectedUpdatedStr: string = `#flashcards
-Multiline question
-Question starting line after tag
-?
-A2 (answer now includes more detail)
-extra answer line 2
-<!--SR:!2023-09-02,4,270-->`;
+    Multiline question
+    Question starting line after tag
+    ?
+    A2 (answer now includes more detail)
+    extra answer line 2
+    <!--SR:!2023-09-02,4,270-->`;
 
                 await checkUpdateCurrentQuestionText(
                     text,
@@ -921,25 +701,25 @@ extra answer line 2
 
             test("Question starts line after tag (no white space after tag); New card", async () => {
                 let originalQuestionStr: string = `#flashcards
-Q2
-?
-A2`;
+    Q2
+    ?
+    A2`;
 
                 let fileText: string = `
-${originalQuestionStr}
+    ${originalQuestionStr}
 
-#flashcards Q1::A1
+    #flashcards Q1::A1
 
-#flashcards Q3::A3`;
+    #flashcards Q3::A3`;
 
                 let updatedQuestionText: string = `Multiline question
-Question starting immediately after tag
-?
-A2 (answer now includes more detail)
-extra answer line 2`;
+    Question starting immediately after tag
+    ?
+    A2 (answer now includes more detail)
+    extra answer line 2`;
 
                 let expectedUpdatedStr: string = `#flashcards
-${updatedQuestionText}`;
+    ${updatedQuestionText}`;
 
                 await checkUpdateCurrentQuestionText(
                     fileText,
@@ -952,25 +732,25 @@ ${updatedQuestionText}`;
 
             test("Question starts line after tag (single space after tag before newline); New card", async () => {
                 let originalQuestionStr: string = `#flashcards${space}
-Q2
-?
-A2`;
+    Q2
+    ?
+    A2`;
 
                 let fileText: string = `
-${originalQuestionStr}
+    ${originalQuestionStr}
 
-#flashcards Q1::A1
+    #flashcards Q1::A1
 
-#flashcards Q3::A3`;
+    #flashcards Q3::A3`;
 
                 let updatedQuestionText: string = `Multiline question
-Question starting immediately after tag
-?
-A2 (answer now includes more detail)
-extra answer line 2`;
+    Question starting immediately after tag
+    ?
+    A2 (answer now includes more detail)
+    extra answer line 2`;
 
                 let expectedUpdatedStr: string = `#flashcards
-${updatedQuestionText}`;
+    ${updatedQuestionText}`;
 
                 await checkUpdateCurrentQuestionText(
                     fileText,
@@ -980,6 +760,122 @@ ${updatedQuestionText}`;
                     DEFAULT_SETTINGS,
                 );
             });
+        });
+    });
+
+    describe("Checking updates to the current card", () => {
+        test("Updating basic single line question with single line question", async () => {
+
+            let fileText: string = `                   
+#flashcards Q1::A1
+
+#flashcards Q2::A2
+
+#flashcards Q3::A3`;
+
+            let c: TestContext = TestContext.Create(
+                order_DueFirst_Sequential,
+                FlashcardReviewMode.Review,
+                DEFAULT_SETTINGS,
+                fileText,
+            );
+            await c.setSequencerDeckTreeFromOriginalText();
+            expect(c.reviewSequencer.currentCard.front).toEqual("Q1");
+            c.reviewSequencer.skipCurrentQuestion();
+            expect(c.reviewSequencer.currentCard.front).toEqual("Q2");
+
+            await c.reviewSequencer.updateCurrentQuestionText("Q2 updated::A2 updated");
+            expect(c.reviewSequencer.currentCard.front).toEqual("Q2 updated");
+ 
+            c.reviewSequencer.skipCurrentQuestion();
+            expect(c.reviewSequencer.currentCard.front).toEqual("Q3");
+        });
+
+        test("Updating basic single line question with single line reversed card", async () => {
+
+            let fileText: string = `                   
+#flashcards Q1::A1
+
+#flashcards Q2::A2
+
+#flashcards Q3::A3`;
+
+            let c: TestContext = TestContext.Create(
+                order_DueFirst_Sequential,
+                FlashcardReviewMode.Review,
+                DEFAULT_SETTINGS,
+                fileText,
+            );
+            await c.setSequencerDeckTreeFromOriginalText();
+            expect(c.reviewSequencer.currentCard.front).toEqual("Q1");
+            c.reviewSequencer.skipCurrentQuestion();
+            expect(c.reviewSequencer.currentCard.front).toEqual("Q2");
+
+            await c.reviewSequencer.updateCurrentQuestionText("Q2 updated:::A2 updated");
+            expect(c.reviewSequencer.currentCard.front).toEqual("Q2 updated");
+            c.reviewSequencer.skipCurrentCard();
+            expect(c.reviewSequencer.currentCard.front).toEqual("A2 updated");
+ 
+            c.reviewSequencer.skipCurrentQuestion();
+            expect(c.reviewSequencer.currentCard.front).toEqual("Q3");
+        });
+
+        test("Updating single line reversed card with basic single line question", async () => {
+
+            let fileText: string = `                   
+#flashcards Q1::A1
+
+#flashcards Q2:::A2
+
+#flashcards Q3::A3`;
+
+            let c: TestContext = TestContext.Create(
+                order_DueFirst_Sequential,
+                FlashcardReviewMode.Review,
+                DEFAULT_SETTINGS,
+                fileText,
+            );
+            await c.setSequencerDeckTreeFromOriginalText();
+            expect(c.reviewSequencer.currentCard.front).toEqual("Q1");
+            c.reviewSequencer.skipCurrentQuestion();
+            expect(c.reviewSequencer.currentCard.front).toEqual("Q2");
+
+            await c.reviewSequencer.updateCurrentQuestionText("Q2 updated::A2 updated");
+            expect(c.reviewSequencer.currentCard.front).toEqual("Q2 updated");
+ 
+            c.reviewSequencer.skipCurrentQuestion();
+            expect(c.reviewSequencer.currentCard.front).toEqual("Q3");
+        });
+
+        test("Updating basic single line question with multiple questions", async () => {
+
+            let fileText: string = `                   
+#flashcards Q1::A1
+
+#flashcards Q2:::A2
+
+#flashcards Q3::A3`;
+
+            let c: TestContext = TestContext.Create(
+                order_DueFirst_Sequential,
+                FlashcardReviewMode.Review,
+                DEFAULT_SETTINGS,
+                fileText,
+            );
+            await c.setSequencerDeckTreeFromOriginalText();
+            expect(c.reviewSequencer.currentCard.front).toEqual("Q1");
+            c.reviewSequencer.skipCurrentQuestion();
+            expect(c.reviewSequencer.currentCard.front).toEqual("Q2");
+
+            await c.reviewSequencer.updateCurrentQuestionText("Q2A updated::A2A updated\nQ2B updated::A2B updated\nQ3A updated::A3A updated\n");
+            expect(c.reviewSequencer.currentCard.front).toEqual("Q2A updated");
+            c.reviewSequencer.skipCurrentQuestion();
+            expect(c.reviewSequencer.currentCard.front).toEqual("Q2B updated");
+            c.reviewSequencer.skipCurrentQuestion();
+            expect(c.reviewSequencer.currentCard.front).toEqual("Q2C updated");
+ 
+            c.reviewSequencer.skipCurrentQuestion();
+            expect(c.reviewSequencer.currentCard.front).toEqual("Q3");
         });
     });
 });
@@ -1017,15 +913,6 @@ ${updatedStr}
         expect(await c.file.read()).toEqual(expectedText);
     });
 });
-
-function checkQuestionPostponementListCount(c: TestContext, expectedListLength: number) {
-    expect(c.questionPostponementList.list.length).toEqual(expectedListLength);
-}
-
-function skipAndCheckNoRemainingCards(c: TestContext) {
-    c.reviewSequencer.skipCurrentCard();
-    expect(c.reviewSequencer.hasCurrentCard).toEqual(false);
-}
 
 async function checkUpdateCurrentQuestionText(
     noteText: string,

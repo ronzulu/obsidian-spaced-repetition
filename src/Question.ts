@@ -76,6 +76,15 @@ export class QuestionText {
         return new QuestionText(original, topicPath, postTopicPathWhiteSpace, actualQuestion);
     }
 
+    static create2(topicPath: TopicPath,
+        postTopicPathWhiteSpace: string,
+        actualQuestion: string): QuestionText {
+
+        let fullText: string = QuestionText._formatForNote(topicPath, postTopicPathWhiteSpace, actualQuestion);
+        
+        return new QuestionText(fullText, topicPath, postTopicPathWhiteSpace, actualQuestion);
+    }
+
     static splitText(original: string, settings: SRSettings): [TopicPath, string, string] {
         const strippedSR = NoteCardScheduleParser.removeCardScheduleInfo(original).trim();
         let actualQuestion: string = strippedSR;
@@ -95,12 +104,16 @@ export class QuestionText {
     }
 
     formatForNote(): string {
+        return QuestionText._formatForNote(this.topicPath, this.postTopicPathWhiteSpace, this.actualQuestion);
+    }
+
+    static _formatForNote(topicPath: TopicPath, postTopicPathWhiteSpace: string, actualQuestion: string): string {
         let result: string = "";
-        if (this.topicPath.hasPath) {
-            result += this.topicPath.formatAsTag();
-            result += this.postTopicPathWhiteSpace ?? " ";
+        if (topicPath.hasPath) {
+            result += topicPath.formatAsTag();
+            result += postTopicPathWhiteSpace ?? " ";
         }
-        result += this.actualQuestion;
+        result += actualQuestion;
         return result;
     }
 }

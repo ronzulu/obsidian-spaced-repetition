@@ -1,13 +1,16 @@
 import { Card } from "./Card";
 import { CardListType, Deck } from "./Deck";
-import { Question, QuestionText } from "./Question";
-import { ReviewResponse } from "./scheduling";
+import { CardType, Question, QuestionText } from "./Question";
+import { ReviewResponse, schedule } from "./scheduling";
 import { SRSettings } from "./settings";
 import { TopicPath } from "./TopicPath";
 import { CardScheduleInfo, ICardScheduleCalculator } from "./CardSchedule";
 import { Note } from "./Note";
 import { IDeckTreeIterator } from "./DeckTreeIterator";
 import { IQuestionPostponementList } from "./QuestionPostponementList";
+import { NoteQuestionParser, ParsedQuestionInfo } from "./NoteQuestionParser";
+import { CardFrontBack, CardFrontBackUtil } from "./QuestionType";
+import { parseUsingSettings } from "./parser";
 
 export interface IFlashcardReviewSequencer {
     get hasCurrentCard(): boolean;
@@ -21,6 +24,7 @@ export interface IFlashcardReviewSequencer {
     setCurrentDeck(topicPath: TopicPath): void;
     getDeckStats(topicPath: TopicPath): DeckStats;
     skipCurrentCard(): void;
+    skipCurrentQuestion(): void;
     determineCardSchedule(response: ReviewResponse, card: Card): CardScheduleInfo;
     processReview(response: ReviewResponse): Promise<void>;
     updateCurrentQuestionText(text: string): Promise<void>;
@@ -142,25 +146,7 @@ export class FlashcardReviewSequencer implements IFlashcardReviewSequencer {
         if (response == ReviewResponse.Reset) {
             this.cardSequencer.moveCurrentCardToEndOfList();
             this.cardSequencer.nextCard();
-        } else {
-            if (this.settings.burySiblingCards) {
-                await this.burySiblingCards();
-                this.cardSequencer.deleteCurrentQuestion();
-            } else {
-                this.deleteCurrentCard();
-            }
-        }
-    }
-
-    private async burySiblingCards(): Promise<void> {
-        // We check if there are any sibling cards still in the deck,
-        // We do this because otherwise we would be adding every reviewed card to the postponement list, even for a
-        // question with a single card. That isn't consistent with the 1.10.1 behavior
-        const remaining = this.currentDeck.getQuestionCardCount(this.currentQuestion);
-        if (remaining > 1) {
-            this.questionPostponementList.add(this.currentQuestion);
-            await this.questionPostponementList.write();
-        }
+        } else this.deleteCurrentCard();
     }
 
     async processReview_CramMode(response: ReviewResponse): Promise<void> {
@@ -195,11 +181,63 @@ export class FlashcardReviewSequencer implements IFlashcardReviewSequencer {
         return result;
     }
 
+    // 
+    // Exception thrown if no questions or multiple questions found in the supplied text
+    // 
     async updateCurrentQuestionText(text: string): Promise<void> {
-        const q: QuestionText = this.currentQuestion.questionText;
 
-        q.actualQuestion = text;
+        // Parse the new text, and ensure there is only a single question present
+        // (FlashcardEditModal would have already ensured this, exception should never be thrown)
+        let parsedQuestionInfoList: [CardType, string, number][] = parseUsingSettings(text, this.settings);
+        if (parsedQuestionInfoList.length != 1) throw `Expected a single question, ${parsedQuestionInfoList.length} found`;
+        let [newCardType, newText, _] = parsedQuestionInfoList[0];
 
-        await this.currentQuestion.writeQuestion(this.settings);
+        // The updated question retains some fields from the original, with the new updated question text
+        let originalQ: Question = this.currentQuestion;
+        let updatedQ: Question = this.createUpdatedQuestion(originalQ, newText, newCardType);
+        
+        // 
+        this.cardSequencer.deleteCurrentQuestion();
+        for (const card of updatedQ.cards) {
+            this.cardSequencer.appendCard(card);
+        }
+
+        await updatedQ.writeQuestion(this.settings);
+        this.cardSequencer.nextCard();
+    }
+
+    private createUpdatedQuestion(originalQ: Question, newText: string, newCardType: CardType): Question {
+        // Each rawCardText can turn into multiple CardFrontBack's (e.g. CardType.Cloze, CardType.SingleLineReversed)
+        let cardFrontBackList: CardFrontBack[] = CardFrontBackUtil.expand(
+            newCardType,
+            newText,
+            this.settings,
+        );
+
+        let questionText: QuestionText = new QuestionText( 
+            originalQ.questionText.original, 
+            originalQ.questionText.topicPath, 
+            originalQ.questionText.postTopicPathWhiteSpace, newText);
+
+        // Retain the existing topic path, question context, etc
+        let question: Question = new Question({
+            note: originalQ.note, 
+            questionType: originalQ.questionType,
+            topicPath: originalQ.topicPath,
+            questionText,
+            lineNo: originalQ.lineNo,
+            hasEditLaterTag: originalQ.hasEditLaterTag,
+            questionContext: originalQ.questionContext,
+            cards: null,
+            hasChanged: false,
+        });
+
+        // Create the list of card objects, and attach to the question
+        // Treat these cards as being new
+        let newCardScheduleInfoList: CardScheduleInfo[] = [];
+        let cardList: Card[] = NoteQuestionParser.createCardList(cardFrontBackList, newCardScheduleInfoList);
+        question.setCardList(cardList);
+
+        return question;
     }
 }
