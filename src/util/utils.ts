@@ -95,3 +95,28 @@ export function getAllTagsFromText(text: string): string[] {
 export function splitTextIntoLineArray(text: string): string[] {
     return text.replaceAll("\r\n", "\n").split("\n");
 }
+
+export function debugFormatStringWithHex(str: string, maxLength: number = 0): string {
+    var hex, i;
+
+    if (maxLength === 0)
+        maxLength = str.length;
+    else
+        if (maxLength > str.length) maxLength = str.length;
+    var result = "";
+    for (i=0; i < maxLength; i++) {
+        const c: number = str.charCodeAt(i);
+        if (c >= 32 && c < 128)
+            result += str[i];
+        else {
+            hex = c.toString(16).toUpperCase();
+            const padding: number = (c >= 256) ? 4 : 2;
+            while (hex.length < padding) {
+                hex = "0" + hex;
+            }
+            result += "{" + hex + "}";
+        }
+    }
+
+    return result
+}

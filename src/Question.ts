@@ -5,7 +5,7 @@ import { Note } from "./Note";
 import { SRSettings } from "./settings";
 import { TopicPath } from "./TopicPath";
 import { MultiLineTextFinder } from "./util/MultiLineTextFinder";
-import { cyrb53 } from "./util/utils";
+import { cyrb53, debugFormatStringWithHex } from "./util/utils";
 
 export enum CardType {
     SingleLineBasic,
@@ -168,9 +168,11 @@ export class Question {
         //      3. the schedule HTML comment (if present)
         const replacementText = this.formatForNote(settings);
 
+        console.log(`updateQuestionText: noteText: ${debugFormatStringWithHex(noteText, 100)}`);
         let newText = MultiLineTextFinder.findAndReplace(noteText, originalText, replacementText);
         if (newText) {
             this.questionText = QuestionText.create(replacementText, settings);
+            console.log(`updateQuestionText: newText: ${debugFormatStringWithHex(newText)}`);
         } else {
             console.error(
                 `updateQuestionText: Text not found: ${originalText.substring(
@@ -178,6 +180,8 @@ export class Question {
                     100,
                 )} in note: ${noteText.substring(0, 100)}`,
             );
+            console.log(`updateQuestionText: noteText: ${debugFormatStringWithHex(noteText)}`);
+            console.log(`updateQuestionText: originalText: ${debugFormatStringWithHex(originalText)}`);
             newText = noteText;
         }
         return newText;
