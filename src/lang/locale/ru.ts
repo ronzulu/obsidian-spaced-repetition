@@ -27,6 +27,7 @@ export default {
     CURRENT_EASE_HELP_TEXT: "Текущая Легкость: ",
     CURRENT_INTERVAL_HELP_TEXT: "Текущий интервал: ",
     CARD_GENERATED_FROM: "Сгенерированно из: ${notePath}",
+    FLASHCARD_MODAL_ALL_DECKS: "All Decks (${deckNameList})!",
 
     // main.ts
     OPEN_NOTE_FOR_REVIEW: "Открыть заметку для повторения",
