@@ -185,7 +185,7 @@ export class FlashcardModal extends Modal {
         const deckStats = this.reviewSequencer.getDeckStats(deck.getTopicPath());
         const [deckView, deckViewSelf, deckViewChildren] = this.addTreeItem(
             containerEl,
-            deck.deckName + "#2",
+            deck.deckName,
             deckStats,
         );
 
