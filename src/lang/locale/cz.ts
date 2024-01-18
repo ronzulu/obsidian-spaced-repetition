@@ -39,6 +39,8 @@ export default {
     RESPONSE_RECEIVED: "Odpověď přijata.",
     NO_DECK_EXISTS: "Neexistuje žádný balíček pro ${deckName}",
     ALL_CAUGHT_UP: "Vše zrevidováno",
+    CARDS_BURIED_AFTER_NOTE_REVIEWED: "${count} flashcards in this note have now been buried", 
+    ALL_CARDS_ALREADY_BURIED: "All flashcards in this note were already buried", 
 
     // scheduling.ts
     DAYS_STR_IVL: "${interval} den/dní",

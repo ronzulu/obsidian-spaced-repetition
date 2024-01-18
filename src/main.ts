@@ -664,11 +664,17 @@ export default class SRPlugin extends Plugin {
                 `sr-ease: ${ease}\n---\n\n${fileText}`;
         }
 
-        if (this.data.settings.burySiblingCards) {
+        if (this.data.settings.buryCardsWhenNoteReviewed) {
             const topicPath: TopicPath = this.findTopicPath(this.createSrTFile(note));
             const noteX: Note = await this.loadNote(note, topicPath);
-            for (const question of noteX.questionList) {
-                this.data.buryList.push(question.questionText.textHash);
+            if (noteX.questionList.length > 0) {
+                var count = 0;
+                for (const question of noteX.questionList) {
+                    const added: boolean = this.questionPostponementList.add(question);
+                    if (added) count++;
+                }
+                if (count > 0) new Notice(t("CARDS_BURIED_AFTER_NOTE_REVIEWED", {count: count}));
+                else new Notice(t("ALL_CARDS_ALREADY_BURIED"));
             }
             await this.savePluginData();
         }

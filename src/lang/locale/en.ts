@@ -39,6 +39,8 @@ export default {
     RESPONSE_RECEIVED: "Response received.",
     NO_DECK_EXISTS: "No deck exists for ${deckName}",
     ALL_CAUGHT_UP: "You're all caught up now :D.",
+    CARDS_BURIED_AFTER_NOTE_REVIEWED: "${count} flashcards in this note have now been buried", 
+    ALL_CARDS_ALREADY_BURIED: "All flashcards in this note were already buried", 
 
     // scheduling.ts
     DAYS_STR_IVL: "${interval} day(s)",
@@ -108,6 +110,7 @@ export default {
     TAGS_TO_REVIEW_DESC: "Enter tags separated by spaces or newlines i.e. #review #tag2 #tag3.",
     OPEN_RANDOM_NOTE: "Open a random note for review",
     OPEN_RANDOM_NOTE_DESC: "When you turn this off, notes are ordered by importance (PageRank).",
+    BURY_CARDS_WHEN_NOTE_REVIEWED: "Bury all cards within note when it's reviewed",
     AUTO_NEXT_NOTE: "Open next note automatically after a review",
     DISABLE_FILE_MENU_REVIEW_OPTIONS:
         "Disable review options in the file menu i.e. Review: Easy Good Hard",

@@ -30,6 +30,7 @@ export interface SRSettings {
     tagsToReview: string[];
     noteFoldersToIgnore: string[];
     openRandomNote: boolean;
+    buryCardsWhenNoteReviewed: boolean;
     autoNextNote: boolean;
     disableFileMenuReviewOptions: boolean;
     maxNDaysNotesReviewQueue: number;
@@ -73,6 +74,7 @@ export const DEFAULT_SETTINGS: SRSettings = {
     enableNoteReviewPaneOnStartup: true,
     tagsToReview: ["#review"],
     noteFoldersToIgnore: [],
+    buryCardsWhenNoteReviewed: false, 
     openRandomNote: false,
     autoNextNote: false,
     disableFileMenuReviewOptions: false,
@@ -90,19 +92,29 @@ export const DEFAULT_SETTINGS: SRSettings = {
 };
 
 export function upgradeSettings(settings: SRSettings) {
-    if (
-        settings.randomizeCardOrder != null &&
-        settings.flashcardCardOrder == null &&
-        settings.flashcardDeckOrder == null
-    ) {
-        console.log(`loadPluginData: Upgrading settings: ${settings.randomizeCardOrder}`);
-        settings.flashcardCardOrder = settings.randomizeCardOrder
-            ? "DueFirstRandom"
-            : "DueFirstSequential";
-        settings.flashcardDeckOrder = "PrevDeckComplete_Sequential";
+    upgradeRandomizeCardOrderSetting();
+    createBuryCardsWhenNoteReviewedSetting();
 
-        // After the upgrade, we don't need the old attribute any more
-        settings.randomizeCardOrder = null;
+    function upgradeRandomizeCardOrderSetting() {
+        if (settings.randomizeCardOrder != null &&
+            settings.flashcardCardOrder == null &&
+            settings.flashcardDeckOrder == null) {
+            console.log(`loadPluginData: upgradeRandomizeCardOrderSetting: ${settings.randomizeCardOrder}`);
+            settings.flashcardCardOrder = settings.randomizeCardOrder
+                ? "DueFirstRandom"
+                : "DueFirstSequential";
+            settings.flashcardDeckOrder = "PrevDeckComplete_Sequential";
+
+            // After the upgrade, we don't need the old attribute any more
+            settings.randomizeCardOrder = null;
+        }
+    }
+
+    function createBuryCardsWhenNoteReviewedSetting() {
+        if (settings.buryCardsWhenNoteReviewed == null) {
+            console.log(`loadPluginData: createBuryCardsWhenNoteReviewedSetting: ${settings.burySiblingCards}`);
+            settings.buryCardsWhenNoteReviewed = settings.burySiblingCards;
+        }
     }
 }
 
@@ -552,6 +564,17 @@ export class SRSettingTab extends PluginSettingTab {
                     }),
             );
 
+         new Setting(containerEl)
+            .setName(t("BURY_CARDS_WHEN_NOTE_REVIEWED"))
+            .addToggle((toggle) =>
+                toggle
+                    .setValue(this.plugin.data.settings.buryCardsWhenNoteReviewed)
+                    .onChange(async (value) => {
+                        this.plugin.data.settings.buryCardsWhenNoteReviewed = value;
+                        await this.plugin.savePluginData();
+                    }),
+            );
+
         new Setting(containerEl).setName(t("AUTO_NEXT_NOTE")).addToggle((toggle) =>
             toggle.setValue(this.plugin.data.settings.autoNextNote).onChange(async (value) => {
                 this.plugin.data.settings.autoNextNote = value;
@@ -793,3 +816,4 @@ export class SRSettingTab extends PluginSettingTab {
         );
     }
 }
+

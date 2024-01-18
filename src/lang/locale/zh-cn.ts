@@ -39,6 +39,8 @@ export default {
     RESPONSE_RECEIVED: "反馈已收到",
     NO_DECK_EXISTS: "没有 ${deckName} 卡组",
     ALL_CAUGHT_UP: "都复习完啦，你真棒！",
+    CARDS_BURIED_AFTER_NOTE_REVIEWED: "${count} flashcards in this note have now been buried", 
+    ALL_CARDS_ALREADY_BURIED: "All flashcards in this note were already buried", 
 
     // scheduling.ts
     DAYS_STR_IVL: "${interval}天",

@@ -48,6 +48,8 @@ export default {
     RESPONSE_RECEIVED: "Ответ получен.",
     NO_DECK_EXISTS: "Не существует уровня ${deckName}",
     ALL_CAUGHT_UP: "Молодец! Ты справился и дошел до конца! :D",
+    CARDS_BURIED_AFTER_NOTE_REVIEWED: "${count} flashcards in this note have now been buried", 
+    ALL_CARDS_ALREADY_BURIED: "All flashcards in this note were already buried", 
 
     // scheduling.ts
     DAYS_STR_IVL: "${interval} дней",

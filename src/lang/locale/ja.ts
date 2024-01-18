@@ -40,6 +40,8 @@ export default {
     RESPONSE_RECEIVED: "答えを受け取りました。",
     NO_DECK_EXISTS: "${deckName}にはデッキが存在しません。",
     ALL_CAUGHT_UP: "今日の課題をすべて達成しました :D",
+    CARDS_BURIED_AFTER_NOTE_REVIEWED: "${count} flashcards in this note have now been buried", 
+    ALL_CARDS_ALREADY_BURIED: "All flashcards in this note were already buried", 
 
     // scheduling.ts
     DAYS_STR_IVL: "${interval}日後",

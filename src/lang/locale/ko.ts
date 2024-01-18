@@ -39,6 +39,8 @@ export default {
     RESPONSE_RECEIVED: "요청이 완료되었습니다",
     NO_DECK_EXISTS: "${deckName}이라는 이름의 덱이 존재하지 않습니다.",
     ALL_CAUGHT_UP: "모두 확인했습니다. :D",
+    CARDS_BURIED_AFTER_NOTE_REVIEWED: "${count} flashcards in this note have now been buried", 
+    ALL_CARDS_ALREADY_BURIED: "All flashcards in this note were already buried", 
 
     // scheduling.ts
     DAYS_STR_IVL: "${interval} 일 후",
