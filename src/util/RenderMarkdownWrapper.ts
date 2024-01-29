@@ -27,9 +27,12 @@ export class RenderMarkdownWrapper {
     ): Promise<void> {
         if (recursiveDepth > 4) return;
 
-        MarkdownRenderer.renderMarkdown(markdownString, containerEl, this.notePath, this.plugin);
+        const div1: HTMLElement = containerEl.createDiv();
+        div1.setAttribute("dir", "rtl");
 
-        containerEl.findAll(".internal-embed").forEach((el) => {
+        MarkdownRenderer.renderMarkdown(markdownString, div1, this.notePath, this.plugin);
+
+        div1.findAll(".internal-embed").forEach((el) => {
             const link = this.parseLink(el.getAttribute("src"));
 
             // file does not exist, display dead link
