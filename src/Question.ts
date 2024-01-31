@@ -6,8 +6,9 @@ import {
     SR_HTML_COMMENT_END,
 } from "./constants";
 import { Note } from "./Note";
+import { ParsedQuestionInfo } from "./parser";
 import { SRSettings } from "./settings";
-import { TopicPath, TopicPathWithWs } from "./TopicPath";
+import { TopicPath, TopicPathList, TopicPathWithWs } from "./TopicPath";
 import { MultiLineTextFinder } from "./util/MultiLineTextFinder";
 import { cyrb53, stringTrimStart } from "./util/utils";
 
@@ -141,14 +142,20 @@ export class QuestionText {
 
 export class Question {
     note: Note;
-    questionType: CardType;
-    topicPath: TopicPath;
+    parsedQuestionInfo: ParsedQuestionInfo;
+    topicPathList: TopicPathList;
     questionText: QuestionText;
-    lineNo: number;
     hasEditLaterTag: boolean;
     questionContext: string[];
     cards: Card[];
     hasChanged: boolean;
+
+    get questionType(): CardType {
+        return this.parsedQuestionInfo.cardType;
+    }
+    get lineNo(): number {
+        return this.parsedQuestionInfo.firstLineNum;
+    }
 
     constructor(init?: Partial<Question>) {
         Object.assign(this, init);
@@ -229,28 +236,29 @@ export class Question {
         this.hasChanged = false;
     }
 
+    formatTopicPathList(): string {
+        return this.topicPathList.format("|");
+    }
+
     static Create(
         settings: SRSettings,
-        questionType: CardType,
-        noteTopicPath: TopicPath,
-        originalText: string, 
+        parsedQuestionInfo: ParsedQuestionInfo,
+        noteTopicPathList: TopicPathList,
         rtl: boolean, 
-        lineNo: number,
         context: string[],
     ): Question {
-        const hasEditLaterTag = originalText.includes(settings.editLaterTag);
-        const questionText: QuestionText = QuestionText.create(originalText, rtl, settings);
+        const hasEditLaterTag = parsedQuestionInfo.text.includes(settings.editLaterTag);
+        const questionText: QuestionText = QuestionText.create(parsedQuestionInfo.text, rtl, settings);
 
-        let topicPath: TopicPath = noteTopicPath;
+        let topicPathList: TopicPathList = noteTopicPathList;
         if (questionText.topicPathWithWs) {
-            topicPath = questionText.topicPathWithWs.topicPath;
+            topicPathList = new TopicPathList([questionText.topicPathWithWs.topicPath]);
         }
 
         const result: Question = new Question({
-            questionType,
-            topicPath,
+            parsedQuestionInfo,
+            topicPathList,
             questionText,
-            lineNo,
             hasEditLaterTag,
             questionContext: context,
             cards: null,
