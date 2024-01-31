@@ -77,14 +77,18 @@ export class QuestionText {
     // The question text, e.g. "Q1::A1" with leading/trailing whitespace as described above
     actualQuestion: string;
 
+    // True if question is specified as being in an RTL language
+    rtl: boolean;
+
     // Hash of string  (topicPath + actualQuestion)
     // Explicitly excludes the HTML comment with the scheduling info
     textHash: string;
 
-    constructor(original: string, topicPathWithWs: TopicPathWithWs, actualQuestion: string) {
+    constructor(original: string, topicPathWithWs: TopicPathWithWs, actualQuestion: string, rtl: boolean) {
         this.original = original;
         this.topicPathWithWs = topicPathWithWs;
         this.actualQuestion = actualQuestion;
+        this.rtl = rtl;
         this.textHash = cyrb53(this.formatForNote());
     }
 
@@ -92,10 +96,10 @@ export class QuestionText {
         return this.actualQuestion.endsWith("```");
     }
 
-    static create(original: string, settings: SRSettings): QuestionText {
+    static create(original: string, rtl: boolean, settings: SRSettings): QuestionText {
         const [topicPathWithWs, actualQuestion] = this.splitText(original, settings);
 
-        return new QuestionText(original, topicPathWithWs, actualQuestion);
+        return new QuestionText(original, topicPathWithWs, actualQuestion, rtl);
     }
 
     static splitText(original: string, settings: SRSettings): [TopicPathWithWs, string] {
@@ -202,7 +206,9 @@ export class Question {
 
         let newText = MultiLineTextFinder.findAndReplace(noteText, originalText, replacementText);
         if (newText) {
-            this.questionText = QuestionText.create(replacementText, settings);
+            // Don't support changing the rtl setting
+            const rtl: boolean = this.questionText.rtl;
+            this.questionText = QuestionText.create(replacementText, rtl, settings);
         } else {
             console.error(
                 `updateQuestionText: Text not found: ${originalText.substring(
@@ -227,12 +233,13 @@ export class Question {
         settings: SRSettings,
         questionType: CardType,
         noteTopicPath: TopicPath,
-        originalText: string,
+        originalText: string, 
+        rtl: boolean, 
         lineNo: number,
         context: string[],
     ): Question {
         const hasEditLaterTag = originalText.includes(settings.editLaterTag);
-        const questionText: QuestionText = QuestionText.create(originalText, settings);
+        const questionText: QuestionText = QuestionText.create(originalText, rtl, settings);
 
         let topicPath: TopicPath = noteTopicPath;
         if (questionText.topicPathWithWs) {

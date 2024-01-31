@@ -23,16 +23,20 @@ export class RenderMarkdownWrapper {
     async renderMarkdownWrapper(
         markdownString: string,
         containerEl: HTMLElement,
+        rtl: boolean, 
         recursiveDepth = 0,
     ): Promise<void> {
         if (recursiveDepth > 4) return;
 
-        const div1: HTMLElement = containerEl.createDiv();
-        div1.setAttribute("dir", "rtl");
+        let el: HTMLElement;
+        if (rtl) {
+            el = containerEl.createDiv();
+            el.setAttribute("dir", "rtl");
+        } else el = containerEl;
 
-        MarkdownRenderer.renderMarkdown(markdownString, div1, this.notePath, this.plugin);
+        MarkdownRenderer.renderMarkdown(markdownString, el, this.notePath, this.plugin);
 
-        div1.findAll(".internal-embed").forEach((el) => {
+        el.findAll(".internal-embed").forEach((el) => {
             const link = this.parseLink(el.getAttribute("src"));
 
             // file does not exist, display dead link
@@ -148,6 +152,10 @@ export class RenderMarkdownWrapper {
             blockText = text;
         }
 
-        this.renderMarkdownWrapper(blockText, el, recursiveDepth + 1);
+        // We are operating here within the parent container.
+        // It already has the rtl div if necessary.
+        // We don't need another rtl div, so we can set rtl to false
+        const rtl: boolean = false;
+        this.renderMarkdownWrapper(blockText, el, rtl, recursiveDepth + 1);
     }
 }
