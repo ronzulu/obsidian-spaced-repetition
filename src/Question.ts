@@ -11,6 +11,7 @@ import { ParsedQuestionInfo } from "./parser";
 import { SRSettings } from "./settings";
 import { TopicPath, TopicPathList, TopicPathWithWs } from "./TopicPath";
 import { MultiLineTextFinder } from "./util/MultiLineTextFinder";
+import { TextDirection } from "./util/TextDirection";
 import { cyrb53, stringTrimStart } from "./util/utils";
 
 export enum CardType {
@@ -87,8 +88,8 @@ export class QuestionText {
     // The question text, e.g. "Q1::A1" with leading/trailing whitespace as described above
     actualQuestion: string;
 
-    // True if question is specified as being in an RTL language
-    rtl: boolean;
+    // Either LTR or RTL
+    textDirection: TextDirection;
 
     // The block identifier (optional), e.g. "^quote-of-the-day"
     // Format of block identifiers:
@@ -105,13 +106,13 @@ export class QuestionText {
         original: string,
         topicPathWithWs: TopicPathWithWs,
         actualQuestion: string,
-		rtl: boolean, 
+		textDirection: TextDirection, 
         blockId: string,
     ) {
         this.original = original;
         this.topicPathWithWs = topicPathWithWs;
         this.actualQuestion = actualQuestion;
-        this.rtl = rtl;
+        this.textDirection = textDirection;
         this.obsidianBlockId = blockId;
 
         // The hash is generated based on the topic and question, explicitly not the schedule or obsidian block ID
@@ -122,10 +123,10 @@ export class QuestionText {
         return this.actualQuestion.endsWith("```");
     }
 
-    static create(original: string, rtl: boolean, settings: SRSettings): QuestionText {
+    static create(original: string, textDirection: TextDirection, settings: SRSettings): QuestionText {
         const [topicPathWithWs, actualQuestion, blockId] = this.splitText(original, settings);
 
-        return new QuestionText(original, topicPathWithWs, actualQuestion, rtl, blockId);
+        return new QuestionText(original, topicPathWithWs, actualQuestion, textDirection, blockId);
     }
 
     static splitText(original: string, settings: SRSettings): [TopicPathWithWs, string, string] {
@@ -269,9 +270,8 @@ export class Question {
 
         let newText = MultiLineTextFinder.findAndReplace(noteText, originalText, replacementText);
         if (newText) {
-            // Don't support changing the rtl setting
-            const rtl: boolean = this.questionText.rtl;
-            this.questionText = QuestionText.create(replacementText, rtl, settings);
+            // Don't support changing the textDirection setting
+            this.questionText = QuestionText.create(replacementText, this.questionText.textDirection, settings);
         } else {
             console.error(
                 `updateQuestionText: Text not found: ${originalText.substring(
@@ -300,11 +300,11 @@ export class Question {
         settings: SRSettings,
         parsedQuestionInfo: ParsedQuestionInfo,
         noteTopicPathList: TopicPathList,
-        rtl: boolean, 
+        textDirection: TextDirection, 
         context: string[],
     ): Question {
         const hasEditLaterTag = parsedQuestionInfo.text.includes(settings.editLaterTag);
-        const questionText: QuestionText = QuestionText.create(parsedQuestionInfo.text, rtl, settings);
+        const questionText: QuestionText = QuestionText.create(parsedQuestionInfo.text, textDirection, settings);
 
         let topicPathList: TopicPathList = noteTopicPathList;
         if (questionText.topicPathWithWs) {

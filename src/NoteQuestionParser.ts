@@ -8,6 +8,7 @@ import { SRSettings, SettingsUtil } from "./settings";
 import { ISRFile } from "./SRFile";
 import { TopicPath, TopicPathList } from "./TopicPath";
 import { extractFrontmatter, splitTextIntoLineArray } from "./util/utils";
+import { TextDirection, TextDirectionUtil } from "./util/TextDirection";
 
 export class NoteQuestionParser {
     settings: SRSettings;
@@ -28,7 +29,7 @@ export class NoteQuestionParser {
         noteFile: ISRFile,
         folderTopicPath: TopicPath,
         onlyKeepQuestionsWithTopicPath: boolean,
-		defaultRtl: boolean
+		defaultTextDirection: TextDirection
     ): Promise<Question[]> {
         this.noteFile = noteFile;
         const noteText: string = await noteFile.read();
@@ -44,8 +45,13 @@ export class NoteQuestionParser {
             // There is no point doing it if there aren't any topic paths
 
             // Create the question list
+
+            let textDirection: TextDirection | null = noteFile.getTextDirection();
+            if (textDirection == null) textDirection = defaultTextDirection;
+            
             this.questionList = this.doCreateQuestionList(
                 noteText,
+                textDirection, 
                 folderTopicPath,
                 this.tagCacheList,
             );
@@ -64,19 +70,12 @@ export class NoteQuestionParser {
         } else {
             this.questionList = [] as Question[];
         }
-        const rtl: boolean = this.determineRtl(defaultRtl);
-        const result: Question[] = this.doCreateQuestionList(noteText, rtl, noteTopicPath);
-        return result;
-    }
-
-    determineRtl(defaultRtl: boolean): boolean {
-        let result: boolean = defaultRtl;
-        
+        return this.questionList;
     }
 
     private doCreateQuestionList(
         noteText: string,
-		rtl: boolean, 
+		textDirection: TextDirection, 
         folderTopicPath: TopicPath,
         tagCacheList: TagCache[],
     ): Question[] {
@@ -88,7 +87,7 @@ export class NoteQuestionParser {
         const result: Question[] = [];
         const parsedQuestionInfoList: ParsedQuestionInfo[] = this.parseQuestions();
         for (const parsedQuestionInfo of parsedQuestionInfoList) {
-            const question: Question = this.createQuestionObject(parsedQuestionInfo);
+            const question: Question = this.createQuestionObject(parsedQuestionInfo, textDirection);
 
             // Each rawCardText can turn into multiple CardFrontBack's (e.g. CardType.Cloze, CardType.SingleLineReversed)
             const cardFrontBackList: CardFrontBack[] = CardFrontBackUtil.expand(
@@ -131,15 +130,15 @@ export class NoteQuestionParser {
         return result;
     }
 
-    private createQuestionObject(parsedQuestionInfo: ParsedQuestionInfo, rtl: boolean): Question {
+    private createQuestionObject(parsedQuestionInfo: ParsedQuestionInfo, textDirection: TextDirection): Question {
         const questionContext: string[] = this.noteFile.getQuestionContext(
             parsedQuestionInfo.firstLineNum,
         );
         const result = Question.Create(
             this.settings,
             parsedQuestionInfo,
-			rtl, 
             null, // We haven't worked out the TopicPathList yet
+			textDirection, 
             questionContext,
         );
         return result;

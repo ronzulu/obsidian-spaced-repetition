@@ -8,6 +8,7 @@ import { createTest_NoteQuestionParser } from "./SampleItems";
 import { ISRFile } from "src/SRFile";
 import { setupStaticDateProvider_20230906 } from "src/util/DateProvider";
 import { UnitTestSRFile } from "./helpers/UnitTestSRFile";
+import { TextDirection } from "src/util/TextDirection";
 
 let parserWithDefaultSettings: NoteQuestionParser = createTest_NoteQuestionParser(DEFAULT_SETTINGS);
 let settings_ConvertFoldersToDecks: SRSettings = { ...DEFAULT_SETTINGS };
@@ -27,7 +28,7 @@ describe("No flashcard questions", () => {
         let noteFile: ISRFile = new UnitTestSRFile(noteText);
 
         expect(
-            await parserWithDefaultSettings.createQuestionList(noteFile, folderTopicPath, true),
+            await parserWithDefaultSettings.createQuestionList(noteFile, folderTopicPath, true, TextDirection.Ltr),
         ).toEqual([]);
     });
 
@@ -37,7 +38,7 @@ describe("No flashcard questions", () => {
         let noteFile: ISRFile = new UnitTestSRFile(noteText);
 
         expect(
-            await parserWithDefaultSettings.createQuestionList(noteFile, folderTopicPath, true),
+            await parserWithDefaultSettings.createQuestionList(noteFile, folderTopicPath, true, TextDirection.Ltr),
         ).toEqual([]);
     });
 });
@@ -69,7 +70,7 @@ A::B
             },
         ];
         expect(
-            await parserWithDefaultSettings.createQuestionList(noteFile, folderTopicPath, true),
+            await parserWithDefaultSettings.createQuestionList(noteFile, folderTopicPath, true, TextDirection.Ltr),
         ).toMatchObject(expected);
     });
 
@@ -108,7 +109,7 @@ A::B
             },
         ];
         expect(
-            await parserWithDefaultSettings.createQuestionList(noteFile, folderTopicPath, true),
+            await parserWithDefaultSettings.createQuestionList(noteFile, folderTopicPath, true, TextDirection.Ltr),
         ).toMatchObject(expected);
     });
 });
@@ -142,7 +143,7 @@ A::B ^d7cee0
             },
         ];
         expect(
-            await parserWithDefaultSettings.createQuestionList(noteFile, folderTopicPath),
+            await parserWithDefaultSettings.createQuestionList(noteFile, folderTopicPath, true, TextDirection.Ltr),
         ).toMatchObject(expected);
     });
 
@@ -182,7 +183,7 @@ A::B ^d7cee0
             },
         ];
         expect(
-            await parserWithDefaultSettings.createQuestionList(noteFile, folderTopicPath),
+            await parserWithDefaultSettings.createQuestionList(noteFile, folderTopicPath, true, TextDirection.Ltr),
         ).toMatchObject(expected);
     });
 
@@ -220,7 +221,7 @@ A::B <!--SR:!2023-09-03,1,230--> ^d7cee0
             },
         ];
         expect(
-            await parserWithDefaultSettings.createQuestionList(noteFile, folderTopicPath),
+            await parserWithDefaultSettings.createQuestionList(noteFile, folderTopicPath, true, TextDirection.Ltr),
         ).toMatchObject(expected);
     });
 
@@ -257,7 +258,7 @@ A::B <!--SR:!2023-09-03,1,230--> ^d7cee0
             },
         ];
         expect(
-            await parserWithDefaultSettings.createQuestionList(noteFile, folderTopicPath),
+            await parserWithDefaultSettings.createQuestionList(noteFile, folderTopicPath, true, TextDirection.Ltr),
         ).toMatchObject(expected);
     });
 });
@@ -274,6 +275,7 @@ Q2::A2
             noteFile,
             folderTopicPath,
             true,
+            TextDirection.Ltr
         );
         expect(questionList.length).toEqual(2);
     });
@@ -291,6 +293,7 @@ Q3::A3
             noteFile,
             folderTopicPath,
             true,
+            TextDirection.Ltr
         );
         expect(questionList.length).toEqual(3);
         expect(questionList[0].topicPathList.formatPsv()).toEqual("#flashcards/science");
@@ -317,6 +320,7 @@ Q3::A3
             noteFile,
             folderTopicPath,
             true,
+            TextDirection.Ltr
         );
         expect(questionList.length).toEqual(3);
         expect(questionList[0].topicPathList.formatPsv()).toEqual("#flashcards/aws");
@@ -344,7 +348,8 @@ describe("Handling tags within note", () => {
                 noteFile,
                 folderTopicPath,
                 true,
-            );
+                TextDirection.Ltr
+                );
             expect(questionList.length).toEqual(3);
             for (let i = 0; i < questionList.length; i++)
                 expect(questionList[i].topicPathList.formatPsv()).toEqual("#folder/subfolder");
@@ -361,6 +366,7 @@ Q1::A1
                 noteFile,
                 folderTopicPath,
                 true,
+                TextDirection.Ltr
             );
             expect(questionList.length).toEqual(1);
             expect(questionList[0].topicPathList.formatPsv()).toEqual("#folder/subfolder");
@@ -380,6 +386,7 @@ Q1::A1
                 noteFile,
                 folderTopicPath,
                 true,
+                TextDirection.Ltr
             );
             expect(questionList.length).toEqual(1);
             expect(questionList[0].topicPathList.formatPsv()).toEqual("#folder/subfolder");
@@ -403,6 +410,7 @@ Q1::A1
                 noteFile,
                 folderTopicPath,
                 true,
+                TextDirection.Ltr
             );
             expect(questionList.length).toEqual(3);
             expect(questionList[0].topicPathList.formatPsv()).toEqual(expectedPath);
@@ -423,6 +431,7 @@ Q1::A1
                 noteFile,
                 folderTopicPath,
                 true,
+                TextDirection.Ltr
             );
             expect(questionList.length).toEqual(3);
             expect(questionList[0].topicPathList.formatPsv()).toEqual("#flashcards/test");
@@ -445,6 +454,7 @@ Q1::A1
                 noteFile,
                 folderTopicPath,
                 true,
+                TextDirection.Ltr
             );
             expect(questionList.length).toEqual(3);
             for (let i = 0; i < questionList.length; i++)
@@ -466,6 +476,7 @@ Q1::A1
                 noteFile,
                 folderTopicPath,
                 true,
+                TextDirection.Ltr
             );
             expect(questionList.length).toEqual(3);
             expect(questionList[0].topicPathList.formatPsv()).toEqual("#flashcards/test");
@@ -489,6 +500,7 @@ Q1::A1
                 noteFile,
                 folderTopicPath,
                 true,
+                TextDirection.Ltr
             );
             expect(questionList.length).toEqual(1);
             expect(questionList[0].topicPathList.formatPsv()).toEqual("#flashcards/science");

@@ -1,10 +1,12 @@
 import { MetadataCache, TFile, Vault, HeadingCache, TagCache, FrontMatterCache } from "obsidian";
+import { TextDirection } from "./util/TextDirection";
 
 export interface ISRFile {
     get path(): string;
     get basename(): string;
     getAllTagsFromText(): TagCache[];
     getQuestionContext(cardLine: number): string[];
+    getTextDirection(): TextDirection | null;
     read(): Promise<string>;
     write(content: string): Promise<void>;
 }
@@ -89,6 +91,21 @@ export class SrTFile implements ISRFile {
             headingObj.heading = headingObj.heading.replace(/\[\^\d+\]/gm, "").trim();
             result.push(headingObj.heading);
         }
+        return result;
+    }
+
+    getTextDirection(): TextDirection | null {
+        let result: TextDirection = null;
+		const fileCache = this.metadataCache.getFileCache(this.file);
+		const frontMatter = fileCache?.frontmatter;
+		if (frontMatter && frontMatter?.direction) {
+            // Don't know why the try/catch is needed; but copied from Obsidian RTL plug-in getFrontMatterDirection()
+			try {
+				const str: string = (frontMatter.direction + '').toLowerCase();
+				result = (str == "rtl") ? TextDirection.Rtl : TextDirection.Ltr;
+			}
+			catch (error) {}
+		}
         return result;
     }
 

@@ -33,6 +33,7 @@ import { NoteEaseCalculator } from "./NoteEaseCalculator";
 import { DeckTreeStatsCalculator } from "./DeckTreeStatsCalculator";
 import { NoteEaseList } from "./NoteEaseList";
 import { QuestionPostponementList } from "./QuestionPostponementList";
+import { TextDirection } from "./util/TextDirection";
 
 interface PluginData {
     settings: SRSettings;
@@ -538,11 +539,16 @@ export default class SRPlugin extends Plugin {
             this.data.settings,
         );
 
-        const note: Note = await loader.load(this.createSrTFile(noteFile), folderTopicPath);
+        const note: Note = await loader.load(this.createSrTFile(noteFile), folderTopicPath, this.getObsidianRtlSetting());
         if (note.hasChanged) {
             note.writeNoteFile(this.data.settings);
         }
         return note;
+    }
+
+    private getObsidianRtlSetting(): TextDirection {
+        // Get the direction with Obsidian's own setting
+		return (this.app.vault as any).getConfig('rightToLeft') ? TextDirection.Rtl : TextDirection.Ltr;
     }
 
     async saveReviewResponse(note: TFile, response: ReviewResponse): Promise<void> {

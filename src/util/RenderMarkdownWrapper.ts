@@ -6,6 +6,7 @@ import {
     NON_LETTER_SYMBOLS_REGEX,
 } from "../constants";
 import SRPlugin from "../main";
+import { TextDirection } from "./TextDirection";
 
 export class RenderMarkdownWrapper {
     private app: App;
@@ -23,13 +24,13 @@ export class RenderMarkdownWrapper {
     async renderMarkdownWrapper(
         markdownString: string,
         containerEl: HTMLElement,
-        rtl: boolean, 
+        textDirection: TextDirection, 
         recursiveDepth = 0,
     ): Promise<void> {
         if (recursiveDepth > 4) return;
 
         let el: HTMLElement;
-        if (rtl) {
+        if (textDirection == TextDirection.Rtl) {
             el = containerEl.createDiv();
             el.setAttribute("dir", "rtl");
         } else el = containerEl;
@@ -154,8 +155,7 @@ export class RenderMarkdownWrapper {
 
         // We are operating here within the parent container.
         // It already has the rtl div if necessary.
-        // We don't need another rtl div, so we can set rtl to false
-        const rtl: boolean = false;
-        this.renderMarkdownWrapper(blockText, el, rtl, recursiveDepth + 1);
+        // We don't need another rtl div, so we can set direction to LTR
+        this.renderMarkdownWrapper(blockText, el, TextDirection.Ltr, recursiveDepth + 1);
     }
 }
