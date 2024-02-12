@@ -24,6 +24,7 @@ export default {
     CURRENT_EASE_HELP_TEXT: "Current Ease: ",
     CURRENT_INTERVAL_HELP_TEXT: "Current Interval: ",
     CARD_GENERATED_FROM: "Generated from: ${notePath}",
+    FLASHCARD_MODAL_ALL_DECKS: "All Decks (${deckNameList})",
 
     // main.ts
     OPEN_NOTE_FOR_REVIEW: "Notiz zur Wiederholung öffnen",
