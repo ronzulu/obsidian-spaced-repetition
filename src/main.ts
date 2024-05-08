@@ -91,6 +91,7 @@ export default class SRPlugin extends Plugin {
 
     async onload(): Promise<void> {
         await this.loadPluginData();
+        console.log(`feat-878-pre-change-debug: v2`);
         this.easeByPath = new NoteEaseList(this.data.settings);
         this.questionPostponementList = new QuestionPostponementList(
             this,
@@ -464,6 +465,7 @@ export default class SRPlugin extends Plugin {
             } else {
                 ease = frontmatter["sr-ease"];
             }
+            console.log(`sync: setEaseForPath: ${noteFile.path}, ease: ${ease}`);
             this.easeByPath.setEaseForPath(noteFile.path, ease);
 
             // schedule the note
@@ -589,6 +591,7 @@ export default class SRPlugin extends Plugin {
             return;
         }
 
+        console.log(`saveReviewResponse: ---`);
         let fileText: string = await this.app.vault.read(note);
         let ease: number, interval: number, delayBeforeReview: number;
         const now: number = Date.now();
@@ -603,9 +606,11 @@ export default class SRPlugin extends Plugin {
             let linkTotal = 0,
                 linkPGTotal = 0,
                 totalLinkCount = 0;
-
+ 
+            console.log(`saveReviewResponse: A: note.path: ${note.path}`);
             for (const statObj of this.incomingLinks[note.path] || []) {
                 const ease: number = this.easeByPath.getEaseByPath(statObj.sourcePath);
+                console.log(`saveReviewResponse: B: incomingLinks: sourcePath: ${statObj.sourcePath}, linkCount: ${statObj.linkCount} ease: ${ease}, pageranks: ${this.pageranks[statObj.sourcePath]}`);
                 if (ease) {
                     linkTotal += statObj.linkCount * this.pageranks[statObj.sourcePath] * ease;
                     linkPGTotal += this.pageranks[statObj.sourcePath] * statObj.linkCount;
@@ -616,6 +621,7 @@ export default class SRPlugin extends Plugin {
             const outgoingLinks = this.app.metadataCache.resolvedLinks[note.path] || {};
             for (const linkedFilePath in outgoingLinks) {
                 const ease: number = this.easeByPath.getEaseByPath(linkedFilePath);
+                console.log(`saveReviewResponse: C: outgoingLinks: linkedFilePath: ${linkedFilePath}, ease: ${ease}, pageranks: ${this.pageranks[linkedFilePath]}`);
                 if (ease) {
                     linkTotal +=
                         outgoingLinks[linkedFilePath] * this.pageranks[linkedFilePath] * ease;
@@ -632,11 +638,15 @@ export default class SRPlugin extends Plugin {
                 (totalLinkCount > 0
                     ? (linkContribution * linkTotal) / linkPGTotal
                     : linkContribution * this.data.settings.baseEase);
+
+            console.log(`saveReviewResponse: D: linkContribution: ${linkContribution}, ease: ${ease}`);
             // add note's average flashcard ease if available
             if (this.easeByPath.hasEaseForPath(note.path)) {
                 ease = (ease + this.easeByPath.getEaseByPath(note.path)) / 2;
+                console.log(`saveReviewResponse: E: ease: ${ease}`);
             }
             ease = Math.round(ease);
+            console.log(`saveReviewResponse: F: ease: ${ease}`);
             interval = 1.0;
             delayBeforeReview = 0;
         } else {
@@ -662,6 +672,7 @@ export default class SRPlugin extends Plugin {
 
         const due = window.moment(now + interval * 24 * 3600 * 1000);
         const dueString: string = due.format("YYYY-MM-DD");
+        console.log(`saveReviewResponse: G: ease: ${ease}`);
 
         // check if scheduling info exists
         if (SCHEDULING_INFO_REGEX.test(fileText)) {
