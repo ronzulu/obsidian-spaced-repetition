@@ -134,6 +134,8 @@ Note that this setting is common to both Flashcards and Notes.`,
     OPEN_RANDOM_NOTE_DESC:
         "Quando você desabilitar isso, as notas vão ser ordenadas por importância (PageRank).",
     AUTO_NEXT_NOTE: "Abrir a próxima nota automaticamente depois de uma revisão",
+    BURY_FLASHCARDS_WHEN_NOTE_REVIEWED:
+        "After reviewing a note, postpone all of the note's flashcards till after today",
     DISABLE_FILE_MENU_REVIEW_OPTIONS:
         "Desabilitar opções de revisão no menu de arquivos ex: Revisão: Fácil OK Difícil",
     DISABLE_FILE_MENU_REVIEW_OPTIONS_DESC:

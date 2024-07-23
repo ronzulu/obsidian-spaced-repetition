@@ -207,7 +207,7 @@ export class OsrCore {
     }
 
     private async buryAllCardsInNote(settings: SRSettings, noteFile: ISRFile): Promise<void> {
-        if (settings.burySiblingCards) {
+        if (settings.buryFlashcardsOnNoteReview) {
             const topicPath: TopicPath = this.findTopicPath(noteFile);
             const noteX: Note = await this.loadNote(noteFile, topicPath);
 

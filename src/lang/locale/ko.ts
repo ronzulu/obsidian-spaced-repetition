@@ -131,6 +131,8 @@ Note that this setting is common to both Flashcards and Notes.`,
     OPEN_RANDOM_NOTE: "리뷰를 위해 랜덤 노트를 엽니다.",
     OPEN_RANDOM_NOTE_DESC: "이 옵션이 꺼져있으면, 노트는 중요도(페이지 랭크)에 따라 정렬됩니다.",
     AUTO_NEXT_NOTE: "리뷰 후에 다음 노트를 자동으로 엽니다.",
+    BURY_FLASHCARDS_WHEN_NOTE_REVIEWED:
+        "After reviewing a note, postpone all of the note's flashcards till after today",
     DISABLE_FILE_MENU_REVIEW_OPTIONS:
         "파일 메뉴에서의 리뷰 옵션을 비활성화 합니다. 예) 리뷰: Easy Good Hard",
     DISABLE_FILE_MENU_REVIEW_OPTIONS_DESC:

@@ -126,6 +126,8 @@ Note that this setting is common to both Flashcards and Notes. : أدخل مسا
     OPEN_RANDOM_NOTE: "افتح ملاحظة عشوائية للمراجعة",
     OPEN_RANDOM_NOTE_DESC: "(Pagerank) عند تعطيل هذا الخيار ،الملاحظات سيتم ترتيبُها حسب الأهمية",
     AUTO_NEXT_NOTE: "افتح الملاحظة التالية تلقائيًا بعد المراجعة",
+    BURY_FLASHCARDS_WHEN_NOTE_REVIEWED:
+        "After reviewing a note, postpone all of the note's flashcards till after today",
     DISABLE_FILE_MENU_REVIEW_OPTIONS:
         "تعطيل خيارات المراجعة في قائمة الملفات ، أي المراجعة:السهل الصعب الجيد",
     DISABLE_FILE_MENU_REVIEW_OPTIONS_DESC:

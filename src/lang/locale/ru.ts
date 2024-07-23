@@ -141,6 +141,8 @@ Note that this setting is common to both Flashcards and Notes.`,
     OPEN_RANDOM_NOTE: "Открыть случайную заметку для изучения",
     OPEN_RANDOM_NOTE_DESC: "Если выключить, то заметки будут отсортированы по важности (PageRank).",
     AUTO_NEXT_NOTE: "После изучения автоматически открывать следующую заметку",
+    BURY_FLASHCARDS_WHEN_NOTE_REVIEWED:
+        "After reviewing a note, postpone all of the note's flashcards till after today",
     DISABLE_FILE_MENU_REVIEW_OPTIONS:
         "Выключить выбор сложности изучения в меню файла, т.е.: Изучение: Легко Нормально Сложно",
     DISABLE_FILE_MENU_REVIEW_OPTIONS_DESC:

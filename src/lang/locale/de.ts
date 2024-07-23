@@ -143,6 +143,8 @@ Note that this setting is common to both Flashcards and Notes.`,
     OPEN_RANDOM_NOTE_DESC:
         "Wenn dies deaktiviert wird, dann werden die Notizen nach Wichtigkeit wiederholt (PageRank).",
     AUTO_NEXT_NOTE: "Nach einer Wiederholung automatisch die nächste Karte öffnen",
+    BURY_FLASHCARDS_WHEN_NOTE_REVIEWED:
+        "After reviewing a note, postpone all of the note's flashcards till after today",
     DISABLE_FILE_MENU_REVIEW_OPTIONS:
         "Optionen zur Wiederholung im Menü einer Datei deaktivieren. Bsp. Wiederholen: Einfach Gut Schwer",
     DISABLE_FILE_MENU_REVIEW_OPTIONS_DESC:

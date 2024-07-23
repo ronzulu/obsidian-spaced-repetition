@@ -1,11 +1,5 @@
 import { Notice, Plugin, TAbstractFile, TFile } from "obsidian";
-import {
-    SRSettingTab,
-    SRSettings,
-    DEFAULT_SETTINGS,
-    upgradeSettings,
-    SettingsUtil,
-} from "src/settings";
+import { SRSettingTab, SRSettings, DEFAULT_SETTINGS, SettingsUtil } from "src/settings";
 import { REVIEW_QUEUE_VIEW_TYPE } from "src/gui/ReviewQueueListView";
 import { t } from "src/lang/helpers";
 import { appIcon } from "src/icons/appicon";
@@ -52,7 +46,7 @@ export default class SRPlugin extends Plugin {
     private nextNoteReviewHandler: NextNoteReviewHandler;
 
     async onload(): Promise<void> {
-        console.log("onload: Branch: master v1.13-beta.8");
+        console.log("onload: Branch: feat-791-sep-note-card-bury-setting"); // master v1.13-beta.8");
         await this.loadPluginData();
 
         this.initLogicClasses();
@@ -437,7 +431,7 @@ export default class SRPlugin extends Plugin {
 
     async loadPluginData(): Promise<void> {
         const loadedData: PluginData = await this.loadData();
-        if (loadedData?.settings) upgradeSettings(loadedData.settings);
+        if (loadedData?.settings) SettingsUtil.upgradeSettings(loadedData.settings);
         this.data = Object.assign({}, DEFAULT_DATA, loadedData);
         this.data.settings = Object.assign({}, DEFAULT_SETTINGS, this.data.settings);
 

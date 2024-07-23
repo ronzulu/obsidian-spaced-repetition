@@ -121,6 +121,8 @@ Note that this setting is common to both Flashcards and Notes.`,
     OPEN_RANDOM_NOTE: "復習隨機筆記",
     OPEN_RANDOM_NOTE_DESC: "關閉此選項，筆記將以重要度(PageRank)排序。",
     AUTO_NEXT_NOTE: "復習後自動打開下一個筆記",
+    BURY_FLASHCARDS_WHEN_NOTE_REVIEWED:
+        "After reviewing a note, postpone all of the note's flashcards till after today",
     DISABLE_FILE_MENU_REVIEW_OPTIONS: "關閉檔案選單中的復習選項 例如：復習：簡單 記得 較難",
     DISABLE_FILE_MENU_REVIEW_OPTIONS_DESC: "關閉檔案選單的復習選項，例如：復習: 簡單 記得 較難。",
     MAX_N_DAYS_REVIEW_QUEUE: "右邊面板顯示的最大天數",

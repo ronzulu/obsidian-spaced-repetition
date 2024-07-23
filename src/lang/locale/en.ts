@@ -129,6 +129,8 @@ Note that this setting is common to both Flashcards and Notes.`,
     OPEN_RANDOM_NOTE: "Open a random note for review",
     OPEN_RANDOM_NOTE_DESC: "When you turn this off, notes are ordered by importance (PageRank).",
     AUTO_NEXT_NOTE: "Open next note automatically after a review",
+    BURY_FLASHCARDS_WHEN_NOTE_REVIEWED:
+        "After reviewing a note, postpone all of the note's flashcards till after today",
     DISABLE_FILE_MENU_REVIEW_OPTIONS:
         "Disable review options in the file menu i.e. Review: Easy Good Hard",
     DISABLE_FILE_MENU_REVIEW_OPTIONS_DESC:

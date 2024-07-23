@@ -35,6 +35,7 @@ export interface SRSettings {
     autoNextNote: boolean;
     disableFileMenuReviewOptions: boolean;
     maxNDaysNotesReviewQueue: number;
+    buryFlashcardsOnNoteReview: boolean;
     // UI preferences
     initiallyExpandAllSubdecksInTree: boolean;
     // algorithm
@@ -79,6 +80,7 @@ export const DEFAULT_SETTINGS: SRSettings = {
     autoNextNote: false,
     disableFileMenuReviewOptions: false,
     maxNDaysNotesReviewQueue: 365,
+    buryFlashcardsOnNoteReview: false,
     // UI settings
     initiallyExpandAllSubdecksInTree: false,
     // algorithm
@@ -91,24 +93,40 @@ export const DEFAULT_SETTINGS: SRSettings = {
     showDebugMessages: false,
 };
 
-export function upgradeSettings(settings: SRSettings) {
-    if (
-        settings.randomizeCardOrder != null &&
-        settings.flashcardCardOrder == null &&
-        settings.flashcardDeckOrder == null
-    ) {
-        console.log(`loadPluginData: Upgrading settings: ${settings.randomizeCardOrder}`);
-        settings.flashcardCardOrder = settings.randomizeCardOrder
-            ? "DueFirstRandom"
-            : "DueFirstSequential";
-        settings.flashcardDeckOrder = "PrevDeckComplete_Sequential";
-
-        // After the upgrade, we don't need the old attribute any more
-        settings.randomizeCardOrder = null;
-    }
-}
-
 export class SettingsUtil {
+    static upgradeSettings(settings: SRSettings) {
+        upgradeFlashcardOrder();
+        upgradeBuryFlashcards();
+
+        function upgradeFlashcardOrder() {
+            if (
+                settings.randomizeCardOrder != null &&
+                settings.flashcardCardOrder == null &&
+                settings.flashcardDeckOrder == null
+            ) {
+                console.log(
+                    `upgradeFlashcardOrder: Upgrading settings: ${settings.randomizeCardOrder}`,
+                );
+                settings.flashcardCardOrder = settings.randomizeCardOrder
+                    ? "DueFirstRandom"
+                    : "DueFirstSequential";
+                settings.flashcardDeckOrder = "PrevDeckComplete_Sequential";
+
+                // After the upgrade, we don't need the old attribute any more
+                settings.randomizeCardOrder = null;
+            }
+        }
+
+        function upgradeBuryFlashcards() {
+            if (settings.burySiblingCards != null && settings.buryFlashcardsOnNoteReview == null) {
+                console.log(
+                    `upgradeBuryFlashcards: Upgrading settings: ${settings.burySiblingCards}`,
+                );
+                settings.buryFlashcardsOnNoteReview = settings.burySiblingCards;
+            }
+        }
+    }
+
     static isFlashcardTag(settings: SRSettings, tag: string): boolean {
         return SettingsUtil.isTagInList(settings.flashcardTags, tag);
     }
@@ -528,6 +546,17 @@ export class SRSettingTab extends PluginSettingTab {
                 await this.plugin.savePluginData();
             }),
         );
+
+        new Setting(containerEl)
+            .setName(t("BURY_FLASHCARDS_WHEN_NOTE_REVIEWED"))
+            .addToggle((toggle) =>
+                toggle
+                    .setValue(this.plugin.data.settings.buryFlashcardsOnNoteReview)
+                    .onChange(async (value) => {
+                        this.plugin.data.settings.buryFlashcardsOnNoteReview = value;
+                        await this.plugin.savePluginData();
+                    }),
+            );
 
         new Setting(containerEl)
             .setName(t("DISABLE_FILE_MENU_REVIEW_OPTIONS"))

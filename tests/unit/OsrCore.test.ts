@@ -335,7 +335,7 @@ describe("Note Due Date Histogram", () => {
 describe("Note review - bury all flashcards", () => {
     test("burySiblingCards - false", async () => {
         const settings: SRSettings = { ...DEFAULT_SETTINGS };
-        settings.burySiblingCards = false;
+        settings.buryFlashcardsOnNoteReview = false;
         const osrCore: UnitTestOsrCore = new UnitTestOsrCore(settings);
         await osrCore.loadTestVault("notes5");
 
@@ -352,7 +352,7 @@ describe("Note review - bury all flashcards", () => {
 
     test("burySiblingCards - true", async () => {
         const settings: SRSettings = { ...DEFAULT_SETTINGS };
-        settings.burySiblingCards = true;
+        settings.buryFlashcardsOnNoteReview = true;
         const osrCore: UnitTestOsrCore = new UnitTestOsrCore(settings);
         await osrCore.loadTestVault("notes5");
 

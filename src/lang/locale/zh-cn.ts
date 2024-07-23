@@ -121,6 +121,8 @@ Note that this setting is common to both Flashcards and Notes.`,
     OPEN_RANDOM_NOTE: "复习随机笔记",
     OPEN_RANDOM_NOTE_DESC: "关闭此选项，笔记将以重要度(PageRank)排序。",
     AUTO_NEXT_NOTE: "复习后自动打开下一个笔记",
+    BURY_FLASHCARDS_WHEN_NOTE_REVIEWED:
+        "After reviewing a note, postpone all of the note's flashcards till after today",
     DISABLE_FILE_MENU_REVIEW_OPTIONS: "关闭文件选单中的复习选项 例如：复习：简单 记得 较难",
     DISABLE_FILE_MENU_REVIEW_OPTIONS_DESC:
         "关闭此选项后你可以使用快捷键开始复习。重新启动Obsidian使本选项生效。",

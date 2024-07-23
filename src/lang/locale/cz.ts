@@ -130,6 +130,8 @@ Note that this setting is common to both Flashcards and Notes.`,
     OPEN_RANDOM_NOTE: "Otevřít náhodnou poznámku pro revizi",
     OPEN_RANDOM_NOTE_DESC: "Pokud toto vypnete, poznámky budou řazeny dle důležitosti (PageRank).",
     AUTO_NEXT_NOTE: "Otevřít automaticky další poznámku po dokončení revize",
+    BURY_FLASHCARDS_WHEN_NOTE_REVIEWED:
+        "After reviewing a note, postpone all of the note's flashcards till after today",
     DISABLE_FILE_MENU_REVIEW_OPTIONS:
         "Vypnout volby revize v menu souboru například 'Revize: Jednoduché'",
     DISABLE_FILE_MENU_REVIEW_OPTIONS_DESC:
