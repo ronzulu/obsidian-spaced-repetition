@@ -101,7 +101,7 @@ export class DataStoreInNote_AlgorithmOsr implements IDataStoreAlgorithm {
                 : RepItemScheduleInfo_Osr.dummyDueDateForNewCard;
             result = `!${dateStr},${schedule.interval},${schedule.latestEase}`;
         } else {
-            result = `!${RepItemScheduleInfo_Osr.dummyDueDateForNewCard},${RepItemScheduleInfo_Osr.initialInterval},${this.settings.baseEase}`;
+            result = `!${RepItemScheduleInfo_Osr.dummyDueDateForNewCard},${RepItemScheduleInfo_Osr.initialInterval},${this.settings.algorithmOsr.baseEase}`;
         }
         return result;
     }

@@ -3,6 +3,9 @@ import type SRPlugin from "src/main";
 import { t } from "src/lang/helpers";
 import { isEqualOrSubPath } from "./util/utils";
 import { TabStructure, createTabs } from "./gui/Tabs";
+import { SrsAlgorithmType } from "./algorithms/base/ISrsAlgorithm";
+import { AlgorithmGuiFactory, IAlgorithmGui } from "./algorithms/base/IAlgorithmGui";
+import { AlgorithmGui_Osr } from "./algorithms/osr/AlgorithmGui_Osr";
 
 export interface SRSettings {
     // flashcards
@@ -38,6 +41,11 @@ export interface SRSettings {
     // UI preferences
     initiallyExpandAllSubdecksInTree: boolean;
     // algorithm
+    algorithmType: string;
+    algorithmOsr: SRSettings_Algorithm_Osr;
+    algorithmSpecifiedIntervals: SRSettings_Algorithm_SpecifiedIntervals;
+
+    // Legacy settings, now present in SRSettings_Algorithm_Osr
     baseEase: number;
     lapsesIntervalChange: number;
     easyBonus: number;
@@ -45,6 +53,20 @@ export interface SRSettings {
     maxLinkFactor: number;
     // logging
     showDebugMessages: boolean;
+}
+
+export interface SRSettings_Algorithm_Osr {
+    baseEase: number;
+    lapsesIntervalChange: number;
+    easyBonus: number;
+    maximumInterval: number;
+    maxLinkFactor: number;
+}
+
+export interface SRSettings_Algorithm_SpecifiedIntervals {
+    easy: number;
+    good: number;
+    hard: number;
 }
 
 export const DEFAULT_SETTINGS: SRSettings = {
@@ -59,7 +81,6 @@ export const DEFAULT_SETTINGS: SRSettings = {
     showContextInCards: true,
     flashcardHeightPercentage: Platform.isMobile ? 100 : 80,
     flashcardWidthPercentage: Platform.isMobile ? 100 : 40,
-    randomizeCardOrder: null,
     flashcardCardOrder: "DueFirstRandom",
     flashcardDeckOrder: "PrevDeckComplete_Sequential",
 
@@ -82,33 +103,90 @@ export const DEFAULT_SETTINGS: SRSettings = {
     // UI settings
     initiallyExpandAllSubdecksInTree: false,
     // algorithm
-    baseEase: 250,
-    lapsesIntervalChange: 0.5,
-    easyBonus: 1.3,
-    maximumInterval: 36525,
-    maxLinkFactor: 1.0,
+    algorithmType: "SM2_Osr", 
+    algorithmOsr: {
+        baseEase: 250,
+        lapsesIntervalChange: 0.5,
+        easyBonus: 1.3,
+        maximumInterval: 36525,
+        maxLinkFactor: 1.0,
+    }, 
+    algorithmSpecifiedIntervals: {
+        easy: 7, 
+        good: 4, 
+        hard: 1
+    }, 
     // logging
     showDebugMessages: false,
+
+    // 
+    // Legacy settings, accessed whilst converting to new style settings
+    // 
+
+    // If present, then converted to flashcardCardOrder/flashcardDeckOrder
+    randomizeCardOrder: null,
+
+    // If present, then converted to algorithmOsr
+    baseEase: null,
+    lapsesIntervalChange: null,
+    easyBonus: null,
+    maximumInterval: null,
+    maxLinkFactor: null,
+
+
 };
 
-export function upgradeSettings(settings: SRSettings) {
-    if (
-        settings.randomizeCardOrder != null &&
-        settings.flashcardCardOrder == null &&
-        settings.flashcardDeckOrder == null
-    ) {
-        console.log(`loadPluginData: Upgrading settings: ${settings.randomizeCardOrder}`);
-        settings.flashcardCardOrder = settings.randomizeCardOrder
-            ? "DueFirstRandom"
-            : "DueFirstSequential";
-        settings.flashcardDeckOrder = "PrevDeckComplete_Sequential";
-
-        // After the upgrade, we don't need the old attribute any more
-        settings.randomizeCardOrder = null;
-    }
-}
-
 export class SettingsUtil {
+    static upgradeSettings(settings: SRSettings) {
+        upgradeFlashcardOrder();
+        upgradeAlgorithm();
+
+        function upgradeFlashcardOrder() {
+            if (
+                settings.randomizeCardOrder != null &&
+                settings.flashcardCardOrder == null &&
+                settings.flashcardDeckOrder == null
+            ) {
+                console.log(
+                    `upgradeFlashcardOrder: Upgrading settings: ${settings.randomizeCardOrder}`,
+                );
+                settings.flashcardCardOrder = settings.randomizeCardOrder
+                    ? "DueFirstRandom"
+                    : "DueFirstSequential";
+                settings.flashcardDeckOrder = "PrevDeckComplete_Sequential";
+
+                // After the upgrade, we don't need the old attribute any more
+                settings.randomizeCardOrder = null;
+            }
+        }
+
+        function upgradeAlgorithm() {
+            if (
+                settings.baseEase != null &&
+                settings.algorithmType == null && 
+                settings.algorithmOsr == null
+            ) {
+                console.log(
+                    `upgradeAlgorithm: Upgrading settings: ${settings.baseEase}, ${settings.lapsesIntervalChange}, ${settings.easyBonus}, ${settings.maximumInterval}, ${settings.maxLinkFactor}`,
+                );
+                settings.algorithmOsr =  {
+                    baseEase: settings.baseEase, 
+                    lapsesIntervalChange: settings.lapsesIntervalChange, 
+                    easyBonus: settings.easyBonus, 
+                    maximumInterval: settings.maximumInterval, 
+                    maxLinkFactor: settings.maxLinkFactor
+                };
+
+                // After the upgrade, we don't need the old attributes any more
+                settings.baseEase = null;
+                settings.lapsesIntervalChange = null;
+                settings.easyBonus = null;
+                settings.maximumInterval = null;
+                settings.maxLinkFactor = null;
+            }
+        }
+    }
+
     static isFlashcardTag(settings: SRSettings, tag: string): boolean {
         return SettingsUtil.isTagInList(settings.flashcardTags, tag);
     }
@@ -153,7 +231,7 @@ export class SettingsUtil {
 
 // https://github.com/mgmeyers/obsidian-kanban/blob/main/src/Settings.ts
 let applyDebounceTimer = 0;
-function applySettingsUpdate(callback: () => void): void {
+export function applySettingsUpdate(callback: () => void): void {
     clearTimeout(applyDebounceTimer);
     applyDebounceTimer = window.setTimeout(callback, 512);
 }
@@ -753,162 +831,32 @@ export class SRSettingTab extends PluginSettingTab {
             }),
         );
 
+        const algorithmTypeNames: Record<string, string> = {
+            SM2_Osr: t("ALGORITHM_TYPE_OSR"),
+            SpecifiedIntervals: t("ALGORITHM_TYPE_SPECIFIED_INTERVALS"),
+        };
         new Setting(containerEl)
-            .setName(t("BASE_EASE"))
-            .setDesc(t("BASE_EASE_DESC"))
-            .addText((text) =>
-                text.setValue(this.plugin.data.settings.baseEase.toString()).onChange((value) => {
-                    applySettingsUpdate(async () => {
-                        const numValue: number = Number.parseInt(value);
-                        if (!isNaN(numValue)) {
-                            if (numValue < 130) {
-                                new Notice(t("BASE_EASE_MIN_WARNING"));
-                                text.setValue(this.plugin.data.settings.baseEase.toString());
-                                return;
-                            }
+        .setName(t("ALGORITHM_TYPE"))
+        .addDropdown((dropdown) =>
+            dropdown
+                .addOptions(algorithmTypeNames)
+                .setValue(this.plugin.data.settings.algorithmType)
+                .onChange(async (value) => {
+                    this.plugin.data.settings.algorithmType = value;
+                    await this.plugin.savePluginData();
 
-                            this.plugin.data.settings.baseEase = numValue;
-                            await this.plugin.savePluginData();
-                        } else {
-                            new Notice(t("VALID_NUMBER_WARNING"));
-                        }
-                    });
+                    // Need to redisplay as algorithm settings are dependent on the selected algorithm type
+                    this.display();
                 }),
-            )
-            .addExtraButton((button) => {
-                button
-                    .setIcon("reset")
-                    .setTooltip(t("RESET_DEFAULT"))
-                    .onClick(async () => {
-                        this.plugin.data.settings.baseEase = DEFAULT_SETTINGS.baseEase;
-                        await this.plugin.savePluginData();
-                        this.display();
-                    });
-            });
+        );
 
-        new Setting(containerEl)
-            .setName(t("LAPSE_INTERVAL_CHANGE"))
-            .setDesc(t("LAPSE_INTERVAL_CHANGE_DESC"))
-            .addSlider((slider) =>
-                slider
-                    .setLimits(1, 99, 1)
-                    .setValue(this.plugin.data.settings.lapsesIntervalChange * 100)
-                    .setDynamicTooltip()
-                    .onChange(async (value: number) => {
-                        this.plugin.data.settings.lapsesIntervalChange = value / 100;
-                        await this.plugin.savePluginData();
-                    }),
-            )
-            .addExtraButton((button) => {
-                button
-                    .setIcon("reset")
-                    .setTooltip(t("RESET_DEFAULT"))
-                    .onClick(async () => {
-                        this.plugin.data.settings.lapsesIntervalChange =
-                            DEFAULT_SETTINGS.lapsesIntervalChange;
-                        await this.plugin.savePluginData();
-                        this.display();
-                    });
-            });
+        const typeName: string = this.plugin.data.settings.algorithmType;
+        containerEl.createEl("h3", { text: algorithmTypeNames[typeName] });
 
-        new Setting(containerEl)
-            .setName(t("EASY_BONUS"))
-            .setDesc(t("EASY_BONUS_DESC"))
-            .addText((text) =>
-                text
-                    .setValue((this.plugin.data.settings.easyBonus * 100).toString())
-                    .onChange((value) => {
-                        applySettingsUpdate(async () => {
-                            const numValue: number = Number.parseInt(value) / 100;
-                            if (!isNaN(numValue)) {
-                                if (numValue < 1.0) {
-                                    new Notice(t("EASY_BONUS_MIN_WARNING"));
-                                    text.setValue(
-                                        (this.plugin.data.settings.easyBonus * 100).toString(),
-                                    );
-                                    return;
-                                }
-
-                                this.plugin.data.settings.easyBonus = numValue;
-                                await this.plugin.savePluginData();
-                            } else {
-                                new Notice(t("VALID_NUMBER_WARNING"));
-                            }
-                        });
-                    }),
-            )
-            .addExtraButton((button) => {
-                button
-                    .setIcon("reset")
-                    .setTooltip(t("RESET_DEFAULT"))
-                    .onClick(async () => {
-                        this.plugin.data.settings.easyBonus = DEFAULT_SETTINGS.easyBonus;
-                        await this.plugin.savePluginData();
-                        this.display();
-                    });
-            });
-
-        new Setting(containerEl)
-            .setName(t("MAX_INTERVAL"))
-            .setDesc(t("MAX_INTERVAL_DESC"))
-            .addText((text) =>
-                text
-                    .setValue(this.plugin.data.settings.maximumInterval.toString())
-                    .onChange((value) => {
-                        applySettingsUpdate(async () => {
-                            const numValue: number = Number.parseInt(value);
-                            if (!isNaN(numValue)) {
-                                if (numValue < 1) {
-                                    new Notice(t("MAX_INTERVAL_MIN_WARNING"));
-                                    text.setValue(
-                                        this.plugin.data.settings.maximumInterval.toString(),
-                                    );
-                                    return;
-                                }
-
-                                this.plugin.data.settings.maximumInterval = numValue;
-                                await this.plugin.savePluginData();
-                            } else {
-                                new Notice(t("VALID_NUMBER_WARNING"));
-                            }
-                        });
-                    }),
-            )
-            .addExtraButton((button) => {
-                button
-                    .setIcon("reset")
-                    .setTooltip(t("RESET_DEFAULT"))
-                    .onClick(async () => {
-                        this.plugin.data.settings.maximumInterval =
-                            DEFAULT_SETTINGS.maximumInterval;
-                        await this.plugin.savePluginData();
-                        this.display();
-                    });
-            });
-
-        new Setting(containerEl)
-            .setName(t("MAX_LINK_CONTRIB"))
-            .setDesc(t("MAX_LINK_CONTRIB_DESC"))
-            .addSlider((slider) =>
-                slider
-                    .setLimits(0, 100, 1)
-                    .setValue(this.plugin.data.settings.maxLinkFactor * 100)
-                    .setDynamicTooltip()
-                    .onChange(async (value: number) => {
-                        this.plugin.data.settings.maxLinkFactor = value / 100;
-                        await this.plugin.savePluginData();
-                    }),
-            )
-            .addExtraButton((button) => {
-                button
-                    .setIcon("reset")
-                    .setTooltip(t("RESET_DEFAULT"))
-                    .onClick(async () => {
-                        this.plugin.data.settings.maxLinkFactor = DEFAULT_SETTINGS.maxLinkFactor;
-                        await this.plugin.savePluginData();
-                        this.display();
-                    });
-            });
+        let typedTypeName: keyof typeof SrsAlgorithmType = typeName as keyof typeof SrsAlgorithmType;
+        const algorithmType: SrsAlgorithmType = SrsAlgorithmType[typedTypeName];
+        const algorithmGui: IAlgorithmGui = AlgorithmGuiFactory.create(algorithmType);
+        algorithmGui.createSettings(containerEl, this.plugin.data.settings, this);
     }
 
     private async tabDeveloper(containerEl: HTMLElement): Promise<void> {
@@ -1008,5 +956,47 @@ export class SRSettingTab extends PluginSettingTab {
                 last_position.tab_name = tab_name;
             });
         }
+    }
+
+    async savePluginData(): Promise<void> {
+        await this.plugin.savePluginData();
+    }
+
+    async saveAndDisplay(): Promise<void> {
+        await this.plugin.savePluginData();
+        this.display();
+    }
+
+    createSettingNumeric(containerEl: HTMLElement, settingName: string, crntValue: number, resetValue: number, 
+        validation: (v: number) => boolean, setNewValue: (v: number) => void) {
+        new Setting(containerEl)
+        .setName(settingName)
+        .addText((text) =>
+            text.setValue(crntValue.toString()).onChange((value) => {
+                applySettingsUpdate(async () => {
+                    const numValue: number = Number.parseInt(value);
+                    if (!isNaN(numValue)) {
+                        if (!validation(numValue)) {
+                            text.setValue(crntValue.toString());
+                            return;
+                        }
+
+                        setNewValue(numValue);
+                        await this.savePluginData();
+                    } else {
+                        new Notice(t("VALID_NUMBER_WARNING"));
+                    }
+                });
+            }),
+        )
+        .addExtraButton((button) => {
+            button
+                .setIcon("reset")
+                .setTooltip(t("RESET_DEFAULT"))
+                .onClick(async () => {
+                    setNewValue(resetValue);
+                    await this.saveAndDisplay();
+                });
+        });
     }
 }

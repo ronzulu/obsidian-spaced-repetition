@@ -3,7 +3,7 @@ import { RepItemScheduleInfo } from "../base/RepItemScheduleInfo";
 import { Moment } from "moment";
 import { RepItemScheduleInfo_Osr } from "./RepItemScheduleInfo_Osr";
 import { ReviewResponse } from "../base/RepetitionItem";
-import { SRSettings } from "src/settings";
+import { SRSettings, SRSettings_Algorithm_Osr } from "src/settings";
 import { INoteEaseList, NoteEaseList } from "src/NoteEaseList";
 import { osrSchedule } from "src/algorithms/osr/NoteScheduling";
 import { ISrsAlgorithm } from "../base/ISrsAlgorithm";
@@ -15,10 +15,12 @@ import { DueDateHistogram } from "src/DueDateHistogram";
 
 export class SrsAlgorithm_Osr implements ISrsAlgorithm {
     private settings: SRSettings;
+    private osrSettings: SRSettings_Algorithm_Osr;
     private noteEaseList: INoteEaseList;
 
     constructor(settings: SRSettings) {
         this.settings = settings;
+        this.osrSettings = settings.algorithmOsr;
         this.noteEaseList = new NoteEaseList(settings);
     }
 
@@ -38,13 +40,13 @@ export class SrsAlgorithm_Osr implements ISrsAlgorithm {
         );
 
         const linkContribution: number =
-            this.settings.maxLinkFactor *
+            this.osrSettings.maxLinkFactor *
             Math.min(1.0, Math.log(noteLinkStat.totalLinkCount + 0.5) / Math.log(64));
         let ease: number =
-            (1.0 - linkContribution) * this.settings.baseEase +
+            (1.0 - linkContribution) * this.osrSettings.baseEase +
             (noteLinkStat.totalLinkCount > 0
                 ? (linkContribution * noteLinkStat.linkTotal) / noteLinkStat.linkPGTotal
-                : linkContribution * this.settings.baseEase);
+                : linkContribution * this.osrSettings.baseEase);
 
         // add note's average flashcard ease if available
         /* c8 ignore next 3 */
@@ -111,7 +113,7 @@ export class SrsAlgorithm_Osr implements ISrsAlgorithm {
             );
             result =
                 flashcardsInNoteAvgEase * flashcardContribution +
-                settings.baseEase * (1.0 - flashcardContribution);
+                settings.algorithmOsr.baseEase * (1.0 - flashcardContribution);
         }
         return result;
     }
@@ -155,7 +157,7 @@ export class SrsAlgorithm_Osr implements ISrsAlgorithm {
 
     cardGetResetSchedule(): RepItemScheduleInfo {
         const interval = SrsAlgorithm_Osr.initialInterval;
-        const ease = this.settings.baseEase;
+        const ease = this.osrSettings.baseEase;
         const dueDate = globalDateProvider.today.add(interval, "d");
         return new RepItemScheduleInfo_Osr(dueDate, interval, ease);
     }
@@ -165,7 +167,7 @@ export class SrsAlgorithm_Osr implements ISrsAlgorithm {
         notePath: string,
         dueDateFlashcardHistogram: DueDateHistogram,
     ): RepItemScheduleInfo {
-        let initial_ease: number = this.settings.baseEase;
+        let initial_ease: number = this.osrSettings.baseEase;
         /* c8 ignore next 3 */
         if (this.noteEaseList.hasEaseForPath(notePath)) {
             initial_ease = Math.round(this.noteEaseList.getEaseByPath(notePath));
