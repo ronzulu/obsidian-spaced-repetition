@@ -35,7 +35,10 @@ nav:
     - Flashcards:
           - Flashcards Overview: flashcards/flashcards-overview.md
           - Question & Answer Cards: flashcards/qanda-cards.md
-          - Cloze Cards: flashcards/basic-cloze-cards.md
+          - Cloze Cards: 
+                - Basic Cloze Cards: flashcards/basic-cloze-cards.md
+                - Advanced Cloze Cards: flashcards/advanced-cloze-cards.md
+                - Custom Cloze Patterns: flashcards/custom-cloze-patterns.md
           - Organizing into Decks: flashcards/decks.md
           - Reviewing & Cramming: flashcards/reviewing.md
           - Statistics: flashcards/statistics.md
