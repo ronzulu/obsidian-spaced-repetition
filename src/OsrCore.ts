@@ -126,6 +126,13 @@ export class OsrCore {
         if (matchedNoteTags.length == 0) {
             return;
         }
+
+        // Check if any exlusion tags are present in the note. If so, don't add it to the review queue
+        const matchedExclusionTags = SettingsUtil.filterForNoteExcludeTag(this.settings, tags);
+        if (matchedExclusionTags.length > 0) {
+            return;
+        }
+
         const noteSchedule: RepItemScheduleInfo =
             await DataStoreAlgorithm.getInstance().noteGetSchedule(noteFile);
         this._noteReviewQueue.addNoteToQueue(noteFile, noteSchedule, matchedNoteTags);
