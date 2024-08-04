@@ -62,7 +62,7 @@ The first female ==prime minister== of Australia was ==Julia Gillard==
 
     </div>
 
-!!! tip "After `Show Answer` Clicked (same for both cards)"
+!!! note "After `Show Answer` Clicked (same for both cards)"
 
     The first female prime minister of Australia was Julia Gillard
 
@@ -100,7 +100,7 @@ by Apple Computer and IBM in ==1991==^[year]
 
     </div>
 
-!!! tip "After `Show Answer` Clicked (same for both cards)"
+!!! note "After `Show Answer` Clicked (same for both cards)"
 
     Kaleida, funded to the tune of $40 million
     by Apple Computer and IBM in 1991
@@ -147,15 +147,16 @@ and this also ==in group 1==[^1]
 
     </div>
 
-!!! tip "After `Show Answer` Clicked (same for both cards)"
+!!! note "After `Show Answer` Clicked (same for both cards)"
 
     This is in group 1, this in group 2 and this also in group 1
 
 !!! warning
     When using deletion groups, every cloze deletion must include the group number
+    !!! Question "Question For Ocimar - Is that correct?"
 
-## Anki style
+### Anki style
 
-!!! warning
-    Anki style `{{c1:This text}} would {{c2:generate}} {{c1:2 cards}}` cloze deletions are not currently supported. This feature is being tracked [here](https://github.com/st3v3nmw/obsidian-spaced-repetition/issues/93/).
+Anki style syntax is supported, see [Custom Cloze Syntax](custom-cloze-patterns.md)
+
 

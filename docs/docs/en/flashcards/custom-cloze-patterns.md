@@ -1,4 +1,7 @@
-# Custom Cloze Patterns
+# Custom Cloze Syntax
+
+!!! Question "Question For Ocimar"
+    I thought that "custom cloze syntax" might be preferable over "custom cloze patterns"
 
 !!! warning "Under Construction"
 
