@@ -45,7 +45,7 @@ import { TextDirection } from "./util/TextDirection";
 import { convertToStringOrEmpty } from "./util/utils";
 import { logger } from "./util/logger";
 
-export const versionString: string = "Branch: master v1.13-beta.8";
+export const versionString: string = "Branch: master v1.13-beta.9";
 
 export default class SRPlugin extends Plugin {
     private statusBar: HTMLElement;
@@ -61,6 +61,10 @@ export default class SRPlugin extends Plugin {
         await this.initLogicClasses();
 
         this.initGuiItems();
+
+        window.onunhandledrejection = (event) => {
+            logger.log(`Unhandled promise rejection: ${event.reason}`);
+        };
     }
 
     private async initLogicClasses(): Promise<void> {
@@ -353,6 +357,15 @@ export default class SRPlugin extends Plugin {
     }
 
     async sync(): Promise<void> {
+        try {
+            await this.doSync();
+        }
+        catch (e) {
+            logger.error("sync()", e);
+        }
+    }
+
+    async doSync(): Promise<void> {
         if (this.osrAppCore.syncLock) {
             return;
         }
