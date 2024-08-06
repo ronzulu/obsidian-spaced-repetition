@@ -45,7 +45,7 @@ import { TextDirection } from "./util/TextDirection";
 import { convertToStringOrEmpty } from "./util/utils";
 import { logger } from "./util/logger";
 
-export const versionString: string = "Branch: master v1.13-beta.9";
+export const versionString: string = "Branch: master v1.13-beta.10";
 
 export default class SRPlugin extends Plugin {
     private statusBar: HTMLElement;
@@ -377,7 +377,7 @@ export default class SRPlugin extends Plugin {
 
         if (this.data.settings.showDebugMessages) {
             // TODO: console.log(`SR: ${t("EASES")}`, this.easeByPath.dict);
-            logger.log(`SR: ${t("DECKS")}, ${this.osrAppCore.reviewableDeckTree}`);
+            // logger.log(`SR: ${t("DECKS")}, ${this.osrAppCore.reviewableDeckTree}`);
             logger.log(
                 "SR: " +
                     t("SYNC_TIME_TAKEN", {
