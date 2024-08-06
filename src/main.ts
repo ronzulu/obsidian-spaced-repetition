@@ -45,7 +45,7 @@ import { TextDirection } from "./util/TextDirection";
 import { convertToStringOrEmpty } from "./util/utils";
 import { logger } from "./util/logger";
 
-export const versionString: string = "Branch: master v1.13-beta.10";
+export const versionString: string = "Branch: master v1.13-beta.11";
 
 export default class SRPlugin extends Plugin {
     private statusBar: HTMLElement;
