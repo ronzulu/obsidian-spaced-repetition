@@ -349,6 +349,9 @@ export default class SRPlugin extends Plugin {
 
         this.osrAppCore.defaultTextDirection = this.getObsidianRtlSetting();
         await this.osrAppCore.loadVault();
+    
+        // The following isn't needed for plug-in functionality; but can aid during debugging
+        await this.savePluginData();
 
         if (this.data.settings.showDebugMessages) {
             // TODO: console.log(`SR: ${t("EASES")}`, this.easeByPath.dict);
