@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, Menu, TFile, MarkdownView } from "obsidian";
+import { ItemView, WorkspaceLeaf, Menu, TFile, MarkdownView, Editor, EditorPosition } from "obsidian";
 
 import { COLLAPSE_ICON } from "src/constants";
 import { ReviewDeck } from "src/ReviewDeck";
@@ -14,6 +14,7 @@ import { globalDateProvider } from "src/util/DateProvider";
 import { Card } from "src/Card";
 import { RenderMarkdownWrapper } from "src/util/RenderMarkdownWrapper";
 import { CardType, Question } from "src/Question";
+import { ParsedQuestionInfo } from "src/parser";
 
 export const FLASHCARD_PREVIEW_VIEW_TYPE = "flashcard-preview-view";
 
@@ -98,14 +99,16 @@ export class FlashcardPreviewView extends ItemView {
 
         const cardList: Card[] = this.plugin.deckTree.findAllCardsFromNote(notePath);
         this.questionListPanel.empty();
-        let el = this.questionListPanel.createDiv();
-        el.setText(`Card count: ${cardList.length}`);
 
         let currentCard: Card = null;
         for (const card of cardList) {
             const inQuestion: boolean = card.question.parsedQuestionInfo.isQuestionLineNum(cursor.line);
             if (inQuestion) currentCard = card;
-            el = this.questionListPanel.createDiv();
+            let el = this.questionListPanel.createDiv("sr-flashcard-preview-card-item");
+            el.addEventListener("click", (e) => {
+                this.highlightCard(view.editor, card);
+                // el.addClass("is-flashing");
+            });
             if (inQuestion) {
                 el.addClass("sr-flashcard-preview-selected-card");
             }
@@ -116,6 +119,18 @@ export class FlashcardPreviewView extends ItemView {
         if (currentCard) {
             this.renderCard(currentCard, notePath);
         }
+    }
+
+    highlightCard(editor: Editor, card: Card) {
+        const info: ParsedQuestionInfo = card.question.parsedQuestionInfo;
+        const first: EditorPosition = { ch: 0, line: info.firstLineNum};
+        const lineLength: number = editor.getLine(info.lastLineNum).length;
+        const last: EditorPosition = { ch: lineLength, line: info.lastLineNum};
+        editor.scrollIntoView({
+            from: first, 
+            to: last, 
+        });
+        editor.setSelection(first, last);
     }
 
     renderCard(card: Card, notePath: string): void {

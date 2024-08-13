@@ -343,6 +343,11 @@ body:not(.native-scrollbars) #sr-modal .modal-close-button {
     flex-basis: 50%;
 }
 
+.sr-flashcard-preview-card-item:hover {
+    background-color: var(--text-highlight-bg);
+    color: var(--text-normal);
+}
+
 .sr-flashcard-preview-selected-card {
     background-color: var(--text-highlight-bg);
     color: var(--text-normal);
