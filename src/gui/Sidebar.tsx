@@ -227,7 +227,7 @@ export class ReviewQueueListView extends ItemView {
             (event: MouseEvent) => {
                 event.preventDefault();
                 const fileMenu: Menu = new Menu();
-                this.app.workspace.trigger("file-menu", fileMenu, file, "my-context-menu", null);
+                this.app.workspace.trigger("file-menu", fileMenu, file, "sidebar-context-menu", null);
                 fileMenu.showAtPosition({
                     x: event.pageX,
                     y: event.pageY,

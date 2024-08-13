@@ -136,6 +136,7 @@ export class FlashcardReviewView {
             this.plugin,
             this._currentNote.filePath,
         );
+        console.log(`FlashcardReviewView: ${this._currentCard.front}`);
         await wrapper.renderMarkdownWrapper(
             this._currentCard.front,
             this.content,
@@ -152,7 +153,7 @@ export class FlashcardReviewView {
             return;
         }
         this.view.removeClass("sr-is-hidden");
-        this.backButton.removeClass("sr-is-hidden");
+        if (this.backButton) this.backButton.removeClass("sr-is-hidden");
         document.addEventListener("keydown", this._keydownHandler);
     }
 
@@ -165,7 +166,7 @@ export class FlashcardReviewView {
             return;
         }
         this.view.addClass("sr-is-hidden");
-        this.backButton.addClass("sr-is-hidden");
+        if (this.backButton) this.backButton.addClass("sr-is-hidden");
         document.removeEventListener("keydown", this._keydownHandler);
     }
 
@@ -366,6 +367,8 @@ export class FlashcardReviewView {
     // -> Header
 
     private _createBackButton() {
+        if (this.modalEl == null) return;
+        
         this.backButton = this.modalEl.createDiv();
         this.backButton.addClasses(["sr-back-button", "sr-is-hidden"]);
         setIcon(this.backButton, "arrow-left");

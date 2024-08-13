@@ -210,6 +210,23 @@ export class Deck {
         }
     }
 
+    deleteAllCardsFromNote(notePath: string): void {
+        const cardList: Card[] = this.findAllCardsFromNote(notePath);
+        for (const card of cardList) {
+            this.deleteCardFromAllDecks(card, true);
+        }
+    }
+
+    findAllCardsFromNote(notePath: string): Card[] {
+        const cardList: Card[] = this.getFlattenedCardArray(CardListType.All, false);
+        let result: Card[] = cardList.filter((card) => card.question.note.filePath == notePath);
+
+        for (const subdeck of this.subdecks) {
+            result.push(...subdeck.findAllCardsFromNote(notePath));
+        }
+        return result;
+    }
+
     //
     // The card's question lists all the topics in which this card is included.
     // The topics are relative to the base deck, and this method must be called on that deck

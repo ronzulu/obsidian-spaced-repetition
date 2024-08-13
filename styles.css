@@ -58,6 +58,12 @@ body:not(.native-scrollbars) #sr-modal .modal-close-button {
     display: none !important;
 }
 
+.sr-flashcard-review-tab-view {
+    position: relative;
+    left: 25%;
+    width: 50%;
+}
+
 .sr-centered {
     display: flex;
     justify-content: center;
@@ -306,6 +312,44 @@ body:not(.native-scrollbars) #sr-modal .modal-close-button {
 .sr-edit-view .sr-response-button.sr-spacer {
     opacity: 0;
     cursor: default;
+}
+
+/*  -> Flashcard Preview */
+
+.sr-flashcard-preview {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    flex-grow: 1;
+    width: 100%;
+    height: 100%;
+}
+
+.sr-flashcard-preview-info-panel {
+    display: flex;
+    flex-direction: row;
+    flex: 1 1;
+    width: 80%;
+    height: 100%;
+    gap: 3rem;
+}
+
+.sr-flashcard-preview-question-list-panel {
+    flex-basis: 50%;
+}
+
+.sr-flashcard-preview-card-panel {
+    flex-basis: 50%;
+}
+
+.sr-flashcard-preview-selected-card {
+    background-color: var(--text-highlight-bg);
+    color: var(--text-normal);
+}
+
+.sr-flashcard-preview-selected-card::before {
+    content: " * ";
 }
 
 /*  -> Statistics */

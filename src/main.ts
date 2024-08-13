@@ -44,6 +44,8 @@ import { QuestionPostponementList } from "./QuestionPostponementList";
 import { TextDirection } from "./util/TextDirection";
 import { convertToStringOrEmpty } from "./util/utils";
 import { isEqualOrSubPath } from "./util/utils";
+import { FLASHCARD_REVIEW_TAB_VIEW_TYPE, FlashcardReviewTabView } from "./gui/FlashcardReviewTabView";
+import { FLASHCARD_PREVIEW_VIEW_TYPE, FlashcardPreviewView } from "./gui/FlashcardPreviewView";
 
 interface PluginData {
     settings: SRSettings;
@@ -75,6 +77,8 @@ export interface LinkStat {
 export default class SRPlugin extends Plugin {
     private statusBar: HTMLElement;
     private reviewQueueView: ReviewQueueListView;
+    private flashcardReviewTabView: FlashcardReviewTabView;
+    private flashcardPreviewView: FlashcardPreviewView;
     public data: PluginData;
     public syncLock = false;
 
@@ -82,7 +86,7 @@ export default class SRPlugin extends Plugin {
     public lastSelectedReviewDeck: string;
 
     public easeByPath: NoteEaseList;
-    private questionPostponementList: QuestionPostponementList;
+    public questionPostponementList: QuestionPostponementList;
     private incomingLinks: Record<string, LinkStat[]> = {};
     private pageranks: Record<string, number> = {};
     private dueNotesCount = 0;
@@ -127,8 +131,8 @@ export default class SRPlugin extends Plugin {
 
         if (!this.data.settings.disableFileMenuReviewOptions) {
             this.registerEvent(
-                this.app.workspace.on("file-menu", (menu, fileish: TAbstractFile) => {
-                    if (fileish instanceof TFile && fileish.extension === "md") {
+                this.app.workspace.on("file-menu", (menu, fileish: TAbstractFile, context: string) => {
+                    if (fileish instanceof TFile && fileish.extension === "md" && context == "sidebar-context-menu") {
                         menu.addItem((item) => {
                             item.setTitle(
                                 t("REVIEW_DIFFICULTY_FILE_MENU", {
@@ -288,6 +292,8 @@ export default class SRPlugin extends Plugin {
 
         this.app.workspace.onLayoutReady(async () => {
             await this.initReviewQueueView();
+            // await this.initFlashcardReviewTabView();
+            await this.initFlashcardPreviewView();
             setTimeout(async () => {
                 if (!this.syncLock) {
                     await this.sync();
@@ -338,7 +344,7 @@ export default class SRPlugin extends Plugin {
         new FlashcardModal(this.app, this, this.data.settings, reviewSequencer, reviewMode).open();
     }
 
-    private static createDeckTreeIterator(settings: SRSettings, baseDeck: Deck): IDeckTreeIterator {
+    static createDeckTreeIterator(settings: SRSettings, baseDeck: Deck): IDeckTreeIterator {
         let cardOrder: CardOrder = CardOrder[settings.flashcardCardOrder as keyof typeof CardOrder];
         if (cardOrder === undefined) cardOrder = CardOrder.DueFirstSequential;
         let deckOrder: DeckOrder = DeckOrder[settings.flashcardDeckOrder as keyof typeof DeckOrder];
@@ -356,6 +362,9 @@ export default class SRPlugin extends Plugin {
             return;
         }
         this.syncLock = true;
+        if (this.getActiveLeaf(FLASHCARD_REVIEW_TAB_VIEW_TYPE)) {
+            this.flashcardReviewTabView.syncStart();
+        }
 
         // reset notes stuff
         graph.reset();
@@ -547,6 +556,9 @@ export default class SRPlugin extends Plugin {
         );
 
         if (this.getActiveLeaf(REVIEW_QUEUE_VIEW_TYPE)) this.reviewQueueView.redraw();
+        if (this.getActiveLeaf(FLASHCARD_REVIEW_TAB_VIEW_TYPE)) {
+            this.flashcardReviewTabView.syncComplete(this.deckTree, this.remainingDeckTree);
+        }
     }
 
     async loadNote(noteFile: TFile): Promise<Note> {
@@ -834,6 +846,32 @@ export default class SRPlugin extends Plugin {
         }
     }
 
+    private async initFlashcardPreviewView() {
+        this.registerView(
+            FLASHCARD_PREVIEW_VIEW_TYPE,
+            (leaf) => (this.flashcardPreviewView = new FlashcardPreviewView(leaf, this)),
+        );
+
+        if (
+            this.getActiveLeaf(FLASHCARD_PREVIEW_VIEW_TYPE) == null
+        ) {
+            await this.activateFlashcardPreviewViewPanel();
+        }
+    }
+
+    private async initFlashcardReviewTabView() {
+        this.registerView(
+            FLASHCARD_REVIEW_TAB_VIEW_TYPE,
+            (leaf) => (this.flashcardReviewTabView = new FlashcardReviewTabView(leaf, this)),
+        );
+
+        if (
+            this.getActiveLeaf(FLASHCARD_REVIEW_TAB_VIEW_TYPE) == null
+        ) {
+            await this.activateFlashcardReviewTabViewPanel();
+        }
+    }
+
     private async activateReviewQueueViewPanel() {
         await this.app.workspace.getRightLeaf(false).setViewState({
             type: REVIEW_QUEUE_VIEW_TYPE,
@@ -852,5 +890,19 @@ export default class SRPlugin extends Plugin {
             this.app.workspace.revealLeaf(reviewQueueLeaf);
             this.updateAndSortDueNotes();
         }
+    }
+
+    private async activateFlashcardPreviewViewPanel() {
+        await this.app.workspace.getLeaf("tab").setViewState({
+            type: FLASHCARD_PREVIEW_VIEW_TYPE,
+            active: true,
+        });
+    }
+
+    private async activateFlashcardReviewTabViewPanel() {
+        await this.app.workspace.getLeaf("tab").setViewState({
+            type: FLASHCARD_REVIEW_TAB_VIEW_TYPE,
+            active: true,
+        });
     }
 }

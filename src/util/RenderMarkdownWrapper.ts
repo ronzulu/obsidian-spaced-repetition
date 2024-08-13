@@ -1,4 +1,4 @@
-import { App, MarkdownRenderer, TFile } from "obsidian";
+import { App, MarkdownRenderer, Menu, TFile } from "obsidian";
 import {
     AUDIO_FORMATS,
     IMAGE_FORMATS,
@@ -50,6 +50,35 @@ export class RenderMarkdownWrapper {
                     this.renderTransclude(el, link, recursiveDepth);
                 }
             }
+        });
+        el.findAll(".internal-link").forEach((el) => {
+            const href = el.getAttribute("href");
+            console.log(`internal-link: ${el.outerHTML}`);
+
+            el.addEventListener("click", async (event) => {
+                event.preventDefault();
+                console.log(`internal-link: click: ${href}`);
+                const file = this.plugin.app.metadataCache.getFirstLinkpathDest(href, this.notePath);
+                await this.app.workspace.getLeaf().openFile(file);
+                return false;
+            });
+            el.addEventListener(
+                "contextmenu",
+                (event: MouseEvent) => {
+                    event.preventDefault();
+                    const fileMenu: Menu = new Menu();
+                    console.log(`internal-link: contextmenu: ${href}`);
+                    const file = this.plugin.app.metadataCache.getFirstLinkpathDest(href, this.notePath);
+                    this.app.workspace.trigger("file-menu", fileMenu, file, "review-context-menu", null);
+                    fileMenu.showAtPosition({
+                        x: event.pageX,
+                        y: event.pageY,
+                    });
+                    return false;
+                },
+                false,
+            );
+        
         });
     }
 
