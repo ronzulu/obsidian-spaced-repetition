@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, Menu, TFile, MarkdownView, Editor, EditorPosition } from "obsidian";
+import { ItemView, WorkspaceLeaf, Menu, TFile, MarkdownView, Editor, EditorPosition, App } from "obsidian";
 
 import { COLLAPSE_ICON } from "src/constants";
 import { ReviewDeck } from "src/ReviewDeck";
@@ -15,6 +15,7 @@ import { Card } from "src/Card";
 import { RenderMarkdownWrapper } from "src/util/RenderMarkdownWrapper";
 import { CardType, Question } from "src/Question";
 import { ParsedQuestionInfo } from "src/parser";
+import { TabDefinitionList, TabStrip } from "./Tabs";
 
 export const FLASHCARD_PREVIEW_VIEW_TYPE = "flashcard-preview-view";
 
@@ -29,7 +30,9 @@ export class FlashcardPreviewView extends ItemView {
     private header: HTMLElement;
     private infoPanel: HTMLElement;
     private questionListPanel: HTMLElement;
-    private cardPreviewPanel: HTMLElement;
+    private tabStrip: TabStrip;
+    private flashcardReviewTab: FlashcardReviewTab;
+    private id: number;
 
     private get settings(): SRSettings  {
         return this.plugin.data.settings;
@@ -37,6 +40,8 @@ export class FlashcardPreviewView extends ItemView {
 
     constructor(leaf: WorkspaceLeaf, plugin: SRPlugin) {
         super(leaf);
+        this.id = globalId++;
+        console.log(`VIEW ${this.id}: constructor:`);
 
         this.plugin = plugin;
 
@@ -44,7 +49,42 @@ export class FlashcardPreviewView extends ItemView {
     }
 
     init() {
-        this.view = this.contentEl.createDiv();
+        const tabDefinition: TabDefinitionList = {
+            "main-decks": {
+                title: "Decks",
+                icon: null, // "SpacedRepIcon",
+                content_generator: (container_element: HTMLElement) =>
+                    this.tabDecks(container_element),
+            },
+            "main-search": {
+                title: "Search",
+                icon: null, // "note-glyph",
+                content_generator: (container_element: HTMLElement) =>
+                    this.tabSearch(container_element),
+            },
+            "main-card": {
+                title: "Flashcard Review",
+                icon: null, // "dot-network",
+                content_generator: (container_element: HTMLElement) =>
+                    this.tabFlashcardReview(container_element),
+            },
+        };
+
+        this.tabStrip = new TabStrip();
+        this.tabStrip.init(
+            this.contentEl, 
+            tabDefinition,
+            "main-decks"
+            // this.last_position.tab_name,
+        );
+
+        setInterval(async () => {
+            this.showInfo();
+        }, 2500);
+    }
+
+    private async tabDecks(containerEl: HTMLElement): Promise<void> {
+        this.view = containerEl.createDiv();
         this.view.addClasses(["sr-flashcard-preview"]);
 
         this.header = this.view.createDiv();
@@ -57,12 +97,10 @@ export class FlashcardPreviewView extends ItemView {
         this.questionListPanel = this.infoPanel.createDiv();
         this.questionListPanel.addClass("sr-flashcard-preview-question-list-panel");
 
-        this.cardPreviewPanel = this.infoPanel.createDiv();
-        this.cardPreviewPanel.addClass("sr-flashcard-preview-card-panel");
 
-        setInterval(async () => {
-            this.showInfo();
-        }, 500);
+    }
+
+    private async tabSearch(containerEl: HTMLElement): Promise<void> {
     }
 
     public getViewType(): string {
@@ -115,9 +153,8 @@ export class FlashcardPreviewView extends ItemView {
             el.setText(card.front);
         }
 
-        this.cardPreviewPanel.empty();
-        if (currentCard) {
-            this.renderCard(currentCard, notePath);
+        if (currentCard && this.flashcardReviewTab) {
+            this.flashcardReviewTab.renderCard(currentCard, notePath);
         }
     }
 
@@ -133,7 +170,38 @@ export class FlashcardPreviewView extends ItemView {
         editor.setSelection(first, last);
     }
 
+    private async tabFlashcardReview(containerEl: HTMLElement): Promise<void> {
+        this.flashcardReviewTab = new FlashcardReviewTab(this.plugin, this.app, containerEl)
+    }
+}
+
+let globalId: number = 0;
+
+class FlashcardReviewTab {
+    private plugin: SRPlugin;
+    private app: App;
+    private containerEl: HTMLElement;
+    private cardReviewPanel: HTMLElement;
+    private id: number;
+
+    constructor(plugin: SRPlugin, app: App, containerEl: HTMLElement) {
+        this.plugin = plugin;
+        this.app = app;
+        this.containerEl = containerEl;
+        this.id = globalId++;
+        console.log(`TAB ${this.id}: constructor:`);
+    }
+
     renderCard(card: Card, notePath: string): void {
+        if (!this.containerEl){
+            console.error(`TAB ${this.id}: renderCard: A`);
+            return;
+        }
+        console.log(`TAB ${this.id}: renderCard`);
+        this.containerEl.empty();
+        this.cardReviewPanel = this.containerEl.createDiv();
+        this.cardReviewPanel.addClass("sr-flashcard-preview-card-panel");
+
         const wrapper: RenderMarkdownWrapper = new RenderMarkdownWrapper(
             this.app,
             this.plugin,
@@ -143,21 +211,21 @@ export class FlashcardPreviewView extends ItemView {
         const question: Question = card.question;
         if (question.questionType != CardType.Cloze) {
             wrapper.renderMarkdownWrapper(
-                card.front,
-                this.cardPreviewPanel,
+                `FRONT ${this.id}: ${card.front}`,
+                this.cardReviewPanel,
                 question.questionText.textDirection,
             );
-            const hr: HTMLElement = document.createElement("hr");
+            const hr: HTMLElement = this.cardReviewPanel.createEl("hr");
             hr.addClass("sr-card-divide");
-            this.cardPreviewPanel.appendChild(hr);
         }
 
         wrapper.renderMarkdownWrapper(
             card.back,
-            this.cardPreviewPanel,
+            this.cardReviewPanel,
             question.questionText.textDirection,
         );
 
 
     }
+
 }

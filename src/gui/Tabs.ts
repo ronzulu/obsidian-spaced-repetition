@@ -19,166 +19,125 @@
 
 import { setIcon } from "obsidian";
 
-export interface Tab {
+export interface TabDefinition {
     title: string;
     icon: string;
     content_generator: (container_element: HTMLElement) => Promise<void>;
 }
 
-export interface TabStructure {
+export interface TabDefinitionList {
+    [key: string]: TabDefinition;
+}
+
+interface TabInstance {
+    tabDefinition: TabDefinition;
+    contentContainer: HTMLElement;
+    button: HTMLButtonElement;
+}
+
+export class TabPosition {
+    
+}
+
+export class TabStrip {
+    containerEl: HTMLElement;
     header: HTMLElement;
-    active_tab_id: string;
-    buttons: {
-        [key: string]: HTMLElement;
-    };
-    contentContainers: {
-        [key: string]: HTMLElement;
-    };
-    contentGeneratorPromises: {
-        [key: string]: Promise<void>;
-    };
-}
+    activeTabId: string;
+    tabInstanceMap: Map<string, TabInstance>;
+    makeTabsEqualsSize: boolean;
 
-export interface Tabs {
-    [key: string]: Tab;
-}
+    init(
+        containerElement: HTMLElement,
+        tabDefinitionList: TabDefinitionList,
+        activateTabId: string,
+    ) {
+        this.containerEl = containerElement;
+        this.header = containerElement.createEl("div", { attr: { class: "sr-tab-header" } });
+        this.activeTabId = Object.keys(tabDefinitionList)[0] as string; // Indicate that the first tab is active. This does not affect what tab is active in practise, it just reports the active tab.
+        this.tabInstanceMap = new Map<string, TabInstance>;
 
-interface TabContentContainers {
-    [key: string]: HTMLElement;
-}
+        for (const tabId in tabDefinitionList) {
+            const tabDefinition = tabDefinitionList[tabId];
 
-interface TabButtons {
-    [key: string]: HTMLElement;
-}
+            // Create button in the header element
+            const button: HTMLButtonElement = this.createButton(this.header,  tabId, tabDefinition)
 
-export function createTabs(
-    container_element: HTMLElement,
-    tabs: Tabs,
-    activateTabId: string,
-): TabStructure {
-    const tab_header = container_element.createEl("div", { attr: { class: "sr-tab-header" } });
-    const tab_content_containers: TabContentContainers = {};
-    const tab_buttons: TabButtons = {};
-    const tab_structure: TabStructure = {
-        header: tab_header,
-        active_tab_id: Object.keys(tabs)[0] as string, // Indicate that the first tab is active. This does not affect what tab is active in practise, it just reports the active tab.
-        buttons: tab_buttons,
-        contentContainers: tab_content_containers,
-        contentGeneratorPromises: {},
-    };
-    let first_button: HTMLElement | undefined;
-    for (const tab_id in tabs) {
-        const tab = tabs[tab_id];
+            // Create content container
+            const contentContainer = containerElement.createDiv("sr-tab-content");
+            contentContainer.setAttribute("data-tab-id", tabId);
 
-        // Create button
-        const button = tab_header.createEl("button", {
-            attr: {
-                class: "sr-tab-header-button",
-                activateTab: "sr-tab-" + tab_id,
-            },
-        });
-        button.onclick = function (event: MouseEvent) {
-            const tab_button = this as HTMLElement; // Use 'this' instead of event.target because this way we'll always get a button element, not an element inside the  button (i.e. an icon).
+            // Generate content
+            tabDefinition.content_generator(contentContainer);
 
-            // Hide all tab contents and get the max dimensions
-            let max_width = 0;
-            let max_height = 0;
-            const tab_header = tab_button.parentElement;
-            if (null === tab_header) {
-                throw new Error("Tab header is missing. Did not get a parent from tab button.");
-            }
-            const container_element = tab_header.parentElement;
-            if (null === container_element) {
-                throw new Error(
-                    "Container element is missing. Did not get a parent from tab header.",
-                );
-            }
-            const tab_contents = container_element.findAll("div.sr-tab-content"); // Do not get all tab contents that exist, because there might be multiple tab systems open at the same time.
-            const is_main_settings_modal = container_element.hasClass("vertical-tab-content");
-            for (const index in tab_contents) {
-                const tab_content = tab_contents[index];
+            const tabInstance: TabInstance = {
+                button, contentContainer, tabDefinition
+            };
+            this.tabInstanceMap.set(tabId, tabInstance);
+        }
 
-                // Get the maximum tab dimensions so that all tabs can have the same dimensions.
-                // But don't do it if this is the main settings modal
-                if (!is_main_settings_modal) {
-                    tab_content.addClass("sr-tab-active"); // Need to make the tab visible temporarily in order to get the dimensions.
-                    if (tab_content.offsetHeight > max_height) {
-                        max_height = tab_content.offsetHeight;
-                    }
-                    if (tab_content.offsetWidth > max_width) {
-                        max_width = tab_content.offsetWidth;
-                    }
-                }
+        // Open a tab
+        this.tabInstanceMap.get(activateTabId).button.click();
+    }
 
-                // Finally hide the tab
-                tab_content.removeClass("sr-tab-active");
-            }
+    private createButton(headerEl: HTMLElement, tabId: string, tabDefinition: TabDefinition): HTMLButtonElement {
+        const button: HTMLButtonElement = headerEl.createEl("button");
+        button.addClass("sr-tab-header-button");
+        button.setAttribute("data-tab-id", tabId);
+        button.addEventListener("click", (e) => {
+            // const tab_button = this as HTMLElement; // Use 'this' instead of event.target because this way we'll always get a button element, not an element inside the  button (i.e. an icon).
 
-            // Remove active status from all buttons
-            const adjacent_tab_buttons = tab_header.findAll(".sr-tab-header-button"); // Do not get all tab buttons that exist, because there might be multiple tab systems open at the same time.
-            for (const index in adjacent_tab_buttons) {
-                const tab_button = adjacent_tab_buttons[index];
-                tab_button.removeClass("sr-tab-active");
-            }
-
-            // Activate the clicked tab
-            tab_button.addClass("sr-tab-active");
-            const activateTabAttribute: Attr | null =
-                tab_button.attributes.getNamedItem("activateTab");
-            if (null === activateTabAttribute) {
-                throw new Error("Tab button has no 'activateTab' HTML attribute! Murr!");
-            }
-            const activate_tab_id = activateTabAttribute.value;
-            const tab_content: HTMLElement | null = document.getElementById(activate_tab_id);
-            if (null === tab_content) {
-                throw new Error(
-                    "No tab content was found with activate_tab_id '" +
-                        activate_tab_id +
-                        "'! Hmph!",
-                );
-            }
-            tab_content.addClass("sr-tab-active");
-
-            // Mark the clicked tab as active in TabStructure (just to report which tab is currently active)
-            tab_structure.active_tab_id = activate_tab_id.replace(/^sr-tab-/, ""); // Remove "sr-tab" prefix.
-
-            // Focus an element (if a focusable element is present)
-            tab_content.find(".sr-focus-element-on-tab-opening")?.focus(); // ? = If not found, do nothing.
-
-            // Apply the max dimensions to this tab
-            // But don't do it if this is the main settings modal
-            if (!is_main_settings_modal) {
-                tab_content.style.width = max_width + "px";
-                tab_content.style.height = max_height + "px";
-            }
-
+            this.handleTabButtonClick(button);
+                
             // Do nothing else (I don't know if this is needed or not)
-            event.preventDefault();
-        };
-        if (tab.icon) setIcon(button, tab.icon);
+            e.preventDefault();
 
-        button.insertAdjacentText("beforeend", " " + tab.title);
-        tab_buttons[tab_id] = button;
-
-        // Create content container
-        tab_content_containers[tab_id] = container_element.createEl("div", {
-            attr: { class: "sr-tab-content", id: "sr-tab-" + tab_id },
         });
+        if (tabDefinition.icon) setIcon(button, tabDefinition.icon);
 
-        // Generate content
-        tab_structure.contentGeneratorPromises[tab_id] = tab.content_generator(
-            tab_content_containers[tab_id],
-        );
+        button.insertAdjacentText("beforeend", " " + tabDefinition.title);
+        return button;
+    }
 
-        // Memorize the first tab's button
-        if (undefined === first_button) {
-            first_button = button;
+    private handleTabButtonClick(tabButton: HTMLElement) {
+        const tabId = this.getTabIdForButton(tabButton);
+        const tabInstance = this.tabInstanceMap.get(tabId);
+
+        // Do not get all tab contents that exist, because there might be multiple tab systems open at the same time.
+        this.deactivateAllButtons();
+        this.deactivateAllTabContents();
+
+        // Activate the clicked tab
+        tabButton.addClass("sr-tab-active");
+        tabInstance.contentContainer.addClass("sr-tab-active");
+        this.activeTabId = tabId;
+
+        // Focus an element (if a focusable element is present)
+        tabInstance.contentContainer.find(".sr-focus-element-on-tab-opening")?.focus(); // ? = If not found, do nothing.
+    };
+
+    private deactivateAllButtons() {
+        // Remove active status from all buttons within this tab strip
+        const tabButtonsList: HTMLElement[] = this.header.findAll(".sr-tab-header-button");
+        for (const index in tabButtonsList) {
+            const tabButton = tabButtonsList[index];
+            tabButton.removeClass("sr-tab-active");
         }
     }
 
-    // Open a tab.
-    tab_buttons[activateTabId].click();
+    private deactivateAllTabContents() {
+        const tabContents: HTMLElement[] = this.containerEl.findAll("div.sr-tab-content");
+        for (const index in tabContents) {
+            const tabContent = tabContents[index];
+            tabContent.removeClass("sr-tab-active");
+        }
+    }
 
-    // Return the TabStructure
-    return tab_structure;
+    private getTabIdForButton(tabButton: HTMLElement): string {
+        const tabIdAttribute: Attr | null =
+            tabButton.attributes.getNamedItem("data-tab-id");
+        if (null === tabIdAttribute) {
+            throw new Error("Tab button has no 'data-tab-id' HTML attribute! Murr!");
+        }
+        return tabIdAttribute.value;
+    }
 }

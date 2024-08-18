@@ -357,6 +357,16 @@ body:not(.native-scrollbars) #sr-modal .modal-close-button {
     content: " * ";
 }
 
+.sr-tab-header-container-inner {
+    display: flex;
+    flex-direction: column;
+}
+
+.sr-tab-header {
+    display: flex;
+    flex-direction: row;
+}
+
 /*  -> Statistics */
 
 #sr-chart-period {
