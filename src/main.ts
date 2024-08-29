@@ -45,7 +45,7 @@ import { TextDirection } from "./util/TextDirection";
 import { convertToStringOrEmpty } from "./util/utils";
 import { isEqualOrSubPath } from "./util/utils";
 import { FLASHCARD_REVIEW_TAB_VIEW_TYPE, FlashcardReviewTabView } from "./gui/FlashcardReviewTabView";
-import { FLASHCARD_PREVIEW_VIEW_TYPE, FlashcardPreviewView } from "./gui/FlashcardPreviewView";
+import { SPACED_REPETITION_VIEW_TYPE, FlashcardPreviewView } from "./gui/SpacedRepetitionView";
 
 interface PluginData {
     settings: SRSettings;
@@ -848,12 +848,12 @@ export default class SRPlugin extends Plugin {
 
     private async initFlashcardPreviewView() {
         this.registerView(
-            FLASHCARD_PREVIEW_VIEW_TYPE,
+            SPACED_REPETITION_VIEW_TYPE,
             (leaf) => (this.flashcardPreviewView = new FlashcardPreviewView(leaf, this)),
         );
 
         if (
-            this.getActiveLeaf(FLASHCARD_PREVIEW_VIEW_TYPE) == null
+            this.getActiveLeaf(SPACED_REPETITION_VIEW_TYPE) == null
         ) {
             await this.activateFlashcardPreviewViewPanel();
         }
@@ -894,7 +894,7 @@ export default class SRPlugin extends Plugin {
 
     private async activateFlashcardPreviewViewPanel() {
         await this.app.workspace.getLeaf("tab").setViewState({
-            type: FLASHCARD_PREVIEW_VIEW_TYPE,
+            type: SPACED_REPETITION_VIEW_TYPE,
             active: true,
         });
     }
