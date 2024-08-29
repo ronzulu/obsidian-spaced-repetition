@@ -33,6 +33,7 @@ export class FlashcardPreviewView extends ItemView {
     private tabStrip: TabStrip;
     private flashcardReviewTab: FlashcardReviewTab;
     private id: number;
+    private timeoutId: NodeJS.Timeout;
 
     private get settings(): SRSettings  {
         return this.plugin.data.settings;
@@ -78,9 +79,15 @@ export class FlashcardPreviewView extends ItemView {
             // this.last_position.tab_name,
         );
 
-        setInterval(async () => {
+        this.timeoutId = setInterval(async () => {
             this.showInfo();
         }, 2500);
+    }
+
+    onClose(): Promise<void> {
+        console.log(`VIEW ${this.id}: Close: ${this.timeoutId}`);
+        if (this.timeoutId) clearTimeout(this.timeoutId);
+        return;
     }
 
     private async tabDecks(containerEl: HTMLElement): Promise<void> {
@@ -137,6 +144,7 @@ export class FlashcardPreviewView extends ItemView {
 
         const cardList: Card[] = this.plugin.deckTree.findAllCardsFromNote(notePath);
         this.questionListPanel.empty();
+        console.log(`showInfo: ${this.id}: ${cardList.length}`);
 
         let currentCard: Card = null;
         for (const card of cardList) {
@@ -151,6 +159,7 @@ export class FlashcardPreviewView extends ItemView {
                 el.addClass("sr-flashcard-preview-selected-card");
             }
             el.setText(card.front);
+            console.log(`showInfo: ${this.id}: ${card.front.substring(0, 10)}: ${card.back.substring(0, 10)}`);
         }
 
         if (currentCard && this.flashcardReviewTab) {
@@ -197,7 +206,7 @@ class FlashcardReviewTab {
             console.error(`TAB ${this.id}: renderCard: A`);
             return;
         }
-        console.log(`TAB ${this.id}: renderCard`);
+        console.log(`TAB ${this.id}: renderCard: ${card.front.substring(0, 20)}`);
         this.containerEl.empty();
         this.cardReviewPanel = this.containerEl.createDiv();
         this.cardReviewPanel.addClass("sr-flashcard-preview-card-panel");

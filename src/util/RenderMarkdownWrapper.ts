@@ -53,7 +53,7 @@ export class RenderMarkdownWrapper {
         });
         el.findAll(".internal-link").forEach((el) => {
             const href = el.getAttribute("href");
-            console.log(`internal-link: ${el.outerHTML}`);
+            // console.log(`internal-link: ${el.outerHTML}`);
 
             el.addEventListener("click", async (event) => {
                 event.preventDefault();

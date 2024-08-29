@@ -1,7 +1,7 @@
 import { Notice, PluginSettingTab, Setting, App, Platform } from "obsidian";
 import type SRPlugin from "src/main";
 import { t } from "src/lang/helpers";
-import { TabStructure, createTabs } from "./gui/Tabs";
+import { TabDefinitionList, TabStrip } from "./gui/Tabs";
 
 export interface SRSettings {
     // flashcards
@@ -131,7 +131,7 @@ function applySettingsUpdate(callback: () => void): void {
 
 export class SRSettingTab extends PluginSettingTab {
     private plugin: SRPlugin;
-    private tab_structure: TabStructure;
+    private tabStrip: TabStrip;
 
     constructor(app: App, plugin: SRPlugin) {
         super(app, plugin);
@@ -146,9 +146,7 @@ export class SRSettingTab extends PluginSettingTab {
         const header = containerEl.createEl("h4", { text: `${t("SETTINGS_HEADER")}` });
         header.addClass("sr-centered");
 
-        this.tab_structure = createTabs(
-            containerEl,
-            {
+        const tabDefinition: TabDefinitionList = {
                 "main-flashcards": {
                     title: t("FLASHCARDS"),
                     icon: null, // "SpacedRepIcon",
@@ -185,16 +183,22 @@ export class SRSettingTab extends PluginSettingTab {
                     content_generator: (container_element: HTMLElement) =>
                         this.tabHelp(container_element),
                 },
-            },
-            this.last_position.tab_name,
+            };
+
+        this.tabStrip = new TabStrip();
+        this.tabStrip.init(
+            containerEl, 
+            tabDefinition,
+            "main-flashcards"
+            // this.last_position.tab_name,
         );
 
         // KEEP THIS AFTER CREATING ALL ELEMENTS:
         // Scroll to the position when the settings modal was last open, but do it after content generating has finished.
         // In practise, shell command previews may take some time to appear.
-        this.tab_structure.contentGeneratorPromises[this.tab_structure.active_tab_id].then(() => {
+        /* // TODO: this.tabStrip.contentGeneratorPromises[this.tabStrip.active_tab_id].then(() => {
             this.rememberLastPosition(containerEl);
-        });
+        }); */
     }
 
     private async tabFlashcards(containerEl: HTMLElement): Promise<void> {
@@ -939,7 +943,7 @@ export class SRSettingTab extends PluginSettingTab {
             <em>Shell commands</em> plugin Copyright &copy; 2021 - 2023 Jarkko Linnanvirta. This program comes with ABSOLUTELY NO WARRANTY. This is free software, and you are welcome to redistribute it under certain conditions. See more information in the license: <a href="${GitHub.license}">GNU GPL-3.0</a>.
         `);     */
     }
-
+/* 
     private last_position: {
         scroll_position: number;
         tab_name: string;
@@ -951,7 +955,7 @@ export class SRSettingTab extends PluginSettingTab {
         const last_position = this.last_position;
 
         // Go to last position now
-        this.tab_structure.buttons[last_position.tab_name].click();
+        this.tabStrip.buttons[last_position.tab_name].click();
         // window.setTimeout(() => { // Need to delay the scrolling a bit. Without this, something else would override scrolling and scroll back to 0.
         container_element.scrollTo({
             top: this.last_position.scroll_position,
@@ -965,11 +969,11 @@ export class SRSettingTab extends PluginSettingTab {
         container_element.addEventListener("scroll", (_) => {
             this.last_position.scroll_position = container_element.scrollTop;
         });
-        for (const tab_name in this.tab_structure.buttons) {
-            const button = this.tab_structure.buttons[tab_name];
+        for (const tab_name in this.tabStrip.buttons) {
+            const button = this.tabStrip.buttons[tab_name];
             button.onClickEvent((_: MouseEvent) => {
                 last_position.tab_name = tab_name;
             });
         }
-    }
+    } */
 }
