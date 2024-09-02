@@ -95,7 +95,7 @@ export class CardsInNoteTab {
             if (card === selectedCard) {
                 el.addClass("sr-flashcard-preview-selected-card");
             }
-            el.setText(card.front);
+            el.innerHTML = card.front;
             console.log(`showInfo: ${this.id}: ${card.front.substring(0, 10)}: ${card.back.substring(0, 10)}`);
         }
 
