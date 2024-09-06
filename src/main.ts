@@ -56,7 +56,7 @@ export default class SRPlugin extends Plugin {
     private debouncedGenerateParserTimeout: number | null = null;
 
     async onload(): Promise<void> {
-        console.log("onload: Branch: feat-878-support-multiple-sched, Date: 2024-07-24");
+        console.log("onload: 1.13-beta.13");
         await this.loadPluginData();
 
         this.initLogicClasses();
