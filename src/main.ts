@@ -56,7 +56,7 @@ export default class SRPlugin extends Plugin {
     private debouncedGenerateParserTimeout: number | null = null;
 
     async onload(): Promise<void> {
-        console.log("onload: 1.13-beta.14");
+        console.log("onload: 1.13-beta.15");
         await this.loadPluginData();
 
         this.initLogicClasses();
