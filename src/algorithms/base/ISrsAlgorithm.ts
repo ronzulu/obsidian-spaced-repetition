@@ -4,6 +4,11 @@ import { Note } from "src/Note";
 import { OsrNoteGraph } from "../osr/OsrNoteGraph";
 import { DueDateHistogram } from "src/DueDateHistogram";
 
+export enum SrsAlgorithmType {
+    SM2_Osr,
+    SpecifiedIntervals
+}
+
 export interface ISrsAlgorithm {
     noteOnLoadedNote(path: string, note: Note, noteEase: number): void;
     noteCalcNewSchedule(
@@ -31,3 +36,5 @@ export interface ISrsAlgorithm {
         dueDateFlashcardHistogram: DueDateHistogram,
     ): RepItemScheduleInfo;
 }
+
+

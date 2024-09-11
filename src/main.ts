@@ -3,7 +3,6 @@ import {
     SRSettingTab,
     SRSettings,
     DEFAULT_SETTINGS,
-    upgradeSettings,
     SettingsUtil,
 } from "src/settings";
 import { REVIEW_QUEUE_VIEW_TYPE } from "src/gui/ReviewQueueListView";
@@ -56,7 +55,7 @@ export default class SRPlugin extends Plugin {
     private debouncedGenerateParserTimeout: number | null = null;
 
     async onload(): Promise<void> {
-        console.log("onload: Branch: feat-878-support-multiple-sched, Date: 2024-07-24");
+        console.log("onload: Branch: feat-741-const-interval-algorithm_v2");
         await this.loadPluginData();
 
         this.initLogicClasses();
@@ -441,7 +440,7 @@ export default class SRPlugin extends Plugin {
 
     async loadPluginData(): Promise<void> {
         const loadedData: PluginData = await this.loadData();
-        if (loadedData?.settings) upgradeSettings(loadedData.settings);
+        if (loadedData?.settings) SettingsUtil.upgradeSettings(loadedData.settings);
         this.data = Object.assign({}, DEFAULT_DATA, loadedData);
         this.data.settings = Object.assign({}, DEFAULT_SETTINGS, this.data.settings);
         setDebugParser(this.data.settings.showPaserDebugMessages);

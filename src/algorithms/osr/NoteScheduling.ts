@@ -22,14 +22,14 @@ export function osrSchedule(
     if (response === ReviewResponse.Easy) {
         ease += 20;
         interval = ((interval + delayedBeforeReviewDays) * ease) / 100;
-        interval *= settingsObj.easyBonus;
+        interval *= settingsObj.algorithmOsr.easyBonus;
     } else if (response === ReviewResponse.Good) {
         interval = ((interval + delayedBeforeReviewDays / 2) * ease) / 100;
     } else if (response === ReviewResponse.Hard) {
         ease = Math.max(130, ease - 20);
         interval = Math.max(
             1,
-            (interval + delayedBeforeReviewDays / 4) * settingsObj.lapsesIntervalChange,
+            (interval + delayedBeforeReviewDays / 4) * settingsObj.algorithmOsr.lapsesIntervalChange,
         );
     }
 
@@ -48,7 +48,7 @@ export function osrSchedule(
         }
     }
 
-    interval = Math.min(interval, settingsObj.maximumInterval);
+    interval = Math.min(interval, settingsObj.algorithmOsr.maximumInterval);
     interval = Math.round(interval * 10) / 10;
 
     return { interval, ease };

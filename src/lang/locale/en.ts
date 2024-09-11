@@ -141,9 +141,14 @@ Note that this setting is common to both Flashcards and Notes.`,
     INITIALLY_EXPAND_SUBDECKS_IN_TREE: "Deck trees should be initially displayed as expanded",
     INITIALLY_EXPAND_SUBDECKS_IN_TREE_DESC:
         "Turn this off to collapse nested decks in the same card. Useful if you have cards which belong to many decks in the same file.",
+    
+    // Algorithm tab
     ALGORITHM: "Algorithm",
     CHECK_ALGORITHM_WIKI:
         'For more information, check the <a href="${algo_url}">algorithm implementation</a>.',
+    ALGORITHM_TYPE: "Algorithm used for calculating spaced repetition intervals", 
+    ALGORITHM_TYPE_OSR: "SM-2-OSR", 
+    ALGORITHM_TYPE_SPECIFIED_INTERVALS: "Specified Intervals", 
     BASE_EASE: "Base ease",
     BASE_EASE_DESC: "minimum = 130, preferrably approximately 250.",
     BASE_EASE_MIN_WARNING: "The base ease must be at least 130.",
@@ -159,6 +164,11 @@ Note that this setting is common to both Flashcards and Notes.`,
     MAX_LINK_CONTRIB: "Maximum link contribution",
     MAX_LINK_CONTRIB_DESC:
         "Maximum contribution of the weighted ease of linked notes to the initial ease.",
+    EASY_INTERVAL: "Easy Interval (days)", 
+    GOOD_INTERVAL: "Good Interval (days)", 
+    HARD_INTERVAL: "Hard Interval (days)", 
+
+    // Developer tab
     LOGGING: "Logging",
     DISPLAY_DEBUG_INFO: "Display debugging information on the developer console",
     DISPLAY_PARSER_DEBUG_INFO:
