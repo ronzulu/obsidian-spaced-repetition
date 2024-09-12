@@ -1,4 +1,4 @@
-import { SRSettings } from "src/settings";
+import { SettingsUtil, SRSettings, SRSettings_Algorithm_Osr } from "src/settings";
 import { t } from "src/lang/helpers";
 import { ReviewResponse } from "../base/RepetitionItem";
 import { DueDateHistogram } from "src/DueDateHistogram";
@@ -18,18 +18,19 @@ export function osrSchedule(
 ): Record<string, number> {
     const delayedBeforeReviewDays = Math.max(0, Math.floor(delayedBeforeReview / TICKS_PER_DAY));
     let interval: number = originalInterval;
+    const algorithmOsrSettings: SRSettings_Algorithm_Osr = SettingsUtil.getSRSettings_Algorithm_Osr(settingsObj);
 
     if (response === ReviewResponse.Easy) {
         ease += 20;
         interval = ((interval + delayedBeforeReviewDays) * ease) / 100;
-        interval *= settingsObj.algorithmOsr.easyBonus;
+        interval *= algorithmOsrSettings.easyBonus;
     } else if (response === ReviewResponse.Good) {
         interval = ((interval + delayedBeforeReviewDays / 2) * ease) / 100;
     } else if (response === ReviewResponse.Hard) {
         ease = Math.max(130, ease - 20);
         interval = Math.max(
             1,
-            (interval + delayedBeforeReviewDays / 4) * settingsObj.algorithmOsr.lapsesIntervalChange,
+            (interval + delayedBeforeReviewDays / 4) * algorithmOsrSettings.lapsesIntervalChange,
         );
     }
 
@@ -48,7 +49,7 @@ export function osrSchedule(
         }
     }
 
-    interval = Math.min(interval, settingsObj.algorithmOsr.maximumInterval);
+    interval = Math.min(interval, algorithmOsrSettings.maximumInterval);
     interval = Math.round(interval * 10) / 10;
 
     return { interval, ease };

@@ -45,7 +45,7 @@ export class RepItemScheduleInfo_Osr extends RepItemScheduleInfo {
         return RepItemScheduleInfo_Osr.fromDueDateStr(
             RepItemScheduleInfo_Osr.dummyDueDateForNewCard,
             RepItemScheduleInfo_Osr.initialInterval,
-            settings.algorithmOsr.baseEase,
+            settings.baseEase,
         );
     }
 

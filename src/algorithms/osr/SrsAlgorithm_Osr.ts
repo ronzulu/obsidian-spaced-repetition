@@ -3,7 +3,7 @@ import { RepItemScheduleInfo } from "../base/RepItemScheduleInfo";
 import { Moment } from "moment";
 import { RepItemScheduleInfo_Osr } from "./RepItemScheduleInfo_Osr";
 import { ReviewResponse } from "../base/RepetitionItem";
-import { SRSettings, SRSettings_Algorithm_Osr } from "src/settings";
+import { SettingsUtil, SRSettings, SRSettings_Algorithm_Osr } from "src/settings";
 import { INoteEaseList, NoteEaseList } from "src/NoteEaseList";
 import { osrSchedule } from "src/algorithms/osr/NoteScheduling";
 import { ISrsAlgorithm } from "../base/ISrsAlgorithm";
@@ -20,7 +20,7 @@ export class SrsAlgorithm_Osr implements ISrsAlgorithm {
 
     constructor(settings: SRSettings) {
         this.settings = settings;
-        this.osrSettings = settings.algorithmOsr;
+        this.osrSettings = SettingsUtil.getSRSettings_Algorithm_Osr(settings);
         this.noteEaseList = new NoteEaseList(settings);
     }
 
@@ -113,7 +113,7 @@ export class SrsAlgorithm_Osr implements ISrsAlgorithm {
             );
             result =
                 flashcardsInNoteAvgEase * flashcardContribution +
-                settings.algorithmOsr.baseEase * (1.0 - flashcardContribution);
+                settings.baseEase * (1.0 - flashcardContribution);
         }
         return result;
     }

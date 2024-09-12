@@ -150,6 +150,9 @@ Note that this setting is common to both Flashcards and Notes.`,
     ALGORITHM: "Algorytm",
     CHECK_ALGORITHM_WIKI:
         'Aby uzyskać więcej informacji, sprawdź <a href="${algo_url}">implementację algorytmu</a>.',
+    ALGORITHM_TYPE: "Algorithm used for calculating spaced repetition intervals", 
+    ALGORITHM_TYPE_OSR: "SM-2-OSR", 
+    ALGORITHM_TYPE_SPECIFIED_INTERVALS: "Specified Intervals", 
     BASE_EASE: "Podstawowa łatwość",
     BASE_EASE_DESC: "minimum = 130, preferowana wartość to około 250.",
     BASE_EASE_MIN_WARNING: "Podstawowa łatwość musi wynosić co najmniej 130.",
@@ -165,6 +168,9 @@ Note that this setting is common to both Flashcards and Notes.`,
     MAX_LINK_CONTRIB: "Maksymalny wkład łącza",
     MAX_LINK_CONTRIB_DESC:
         "Maksymalny wkład ważonej łatwości połączonych notatek do początkowej łatwości.",
+    EASY_INTERVAL: "Easy Interval (days)", 
+    GOOD_INTERVAL: "Good Interval (days)", 
+    HARD_INTERVAL: "Hard Interval (days)", 
     LOGGING: "Logowanie",
     DISPLAY_DEBUG_INFO: "Wyświetl informacje debugowania w konsoli deweloperskiej", // sidebar.ts
     DISPLAY_PARSER_DEBUG_INFO:

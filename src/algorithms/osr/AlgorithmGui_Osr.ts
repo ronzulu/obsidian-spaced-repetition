@@ -1,11 +1,11 @@
 import { Notice, Setting } from "obsidian";
 import { IAlgorithmGui } from "../base/IAlgorithmGui";
 import { t } from "src/lang/helpers";
-import { applySettingsUpdate, DEFAULT_SETTINGS, SRSettings, SRSettings_Algorithm_Osr, SRSettingTab } from "src/settings";
+import { applySettingsUpdate, DEFAULT_SETTINGS, SettingsUtil, SRSettings, SRSettings_Algorithm_Osr, SRSettingTab } from "src/settings";
 
 export class AlgorithmGui_Osr implements IAlgorithmGui {
     createSettings(containerEl: HTMLElement, settings: SRSettings, settingsTab: SRSettingTab): void {
-        const osrSettings: SRSettings_Algorithm_Osr = settings.algorithmOsr;
+        const osrSettings: SRSettings_Algorithm_Osr = SettingsUtil.getSRSettings_Algorithm_Osr(settings);
 
         new Setting(containerEl)
             .setName(t("BASE_EASE"))

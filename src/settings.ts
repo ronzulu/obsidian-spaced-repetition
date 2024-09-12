@@ -43,15 +43,15 @@ export interface SRSettings {
     initiallyExpandAllSubdecksInTree: boolean;
     // algorithm
     algorithmType: string;
-    algorithmOsr: SRSettings_Algorithm_Osr;
     algorithmSpecifiedIntervals: SRSettings_Algorithm_SpecifiedIntervals;
 
-    // Legacy settings, now present in SRSettings_Algorithm_Osr
+    // Settings for algorithm SM2_Osr
     baseEase: number;
     lapsesIntervalChange: number;
     easyBonus: number;
     maximumInterval: number;
     maxLinkFactor: number;
+
     // logging
     showDebugMessages: boolean;
     showPaserDebugMessages: boolean;
@@ -107,13 +107,11 @@ export const DEFAULT_SETTINGS: SRSettings = {
     initiallyExpandAllSubdecksInTree: false,
     // algorithm
     algorithmType: "SM2_Osr", 
-    algorithmOsr: {
-        baseEase: 250,
-        lapsesIntervalChange: 0.5,
-        easyBonus: 1.3,
-        maximumInterval: 36525,
-        maxLinkFactor: 1.0,
-    }, 
+    baseEase: 250,
+    lapsesIntervalChange: 0.5,
+    easyBonus: 1.3,
+    maximumInterval: 36525,
+    maxLinkFactor: 1.0,
     algorithmSpecifiedIntervals: {
         easy: 7, 
         good: 4, 
@@ -129,15 +127,6 @@ export const DEFAULT_SETTINGS: SRSettings = {
 
     // If present, then converted to flashcardCardOrder/flashcardDeckOrder
     randomizeCardOrder: null,
-
-    // If present, then converted to algorithmOsr
-    baseEase: null,
-    lapsesIntervalChange: null,
-    easyBonus: null,
-    maximumInterval: null,
-    maxLinkFactor: null,
-
-
 };
 
 export class SettingsUtil {
@@ -167,28 +156,24 @@ export class SettingsUtil {
         function upgradeAlgorithm() {
             if (
                 settings.baseEase != null &&
-                settings.algorithmType == null && 
-                settings.algorithmOsr == null
+                settings.algorithmType == null 
             ) {
                 console.log(
-                    `upgradeAlgorithm: Upgrading settings: ${settings.baseEase}, ${settings.lapsesIntervalChange}, ${settings.easyBonus}, ${settings.maximumInterval}, ${settings.maxLinkFactor}`,
+                    `upgradeAlgorithm: Setting algorithm type to: "SM2_Osr"`,
                 );
-                settings.algorithmOsr =  {
-                    baseEase: settings.baseEase, 
-                    lapsesIntervalChange: settings.lapsesIntervalChange, 
-                    easyBonus: settings.easyBonus, 
-                    maximumInterval: settings.maximumInterval, 
-                    maxLinkFactor: settings.maxLinkFactor
-                };
-
-                // After the upgrade, we don't need the old attributes any more
-                settings.baseEase = null;
-                settings.lapsesIntervalChange = null;
-                settings.easyBonus = null;
-                settings.maximumInterval = null;
-                settings.maxLinkFactor = null;
+                settings.algorithmType = "SM2_Osr";
             }
         }
+    }
+
+    static getSRSettings_Algorithm_Osr(settings: SRSettings): SRSettings_Algorithm_Osr {
+        return {
+            baseEase: settings.baseEase, 
+            lapsesIntervalChange: settings.lapsesIntervalChange, 
+            easyBonus: settings.easyBonus, 
+            maximumInterval: settings.maximumInterval, 
+            maxLinkFactor: settings.maxLinkFactor
+        };
     }
 
     static isFlashcardTag(settings: SRSettings, tag: string): boolean {

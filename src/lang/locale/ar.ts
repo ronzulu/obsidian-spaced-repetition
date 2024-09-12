@@ -142,6 +142,9 @@ Note that this setting is common to both Flashcards and Notes. : أدخل مسا
     ALGORITHM: "خوارزمية",
     CHECK_ALGORITHM_WIKI:
         '<a href="${algo_url}">algorithm implementation</a> :لمزيد من المعلومات تحقق من',
+    ALGORITHM_TYPE: "Algorithm used for calculating spaced repetition intervals", 
+    ALGORITHM_TYPE_OSR: "SM-2-OSR", 
+    ALGORITHM_TYPE_SPECIFIED_INTERVALS: "Specified Intervals", 
     BASE_EASE: "سهولة القاعدة",
     BASE_EASE_DESC: "الحد الأدنى = 130 ، ويفضل حوالي 250.",
     BASE_EASE_MIN_WARNING: "يجب أن تكون سهولة القاعدة 130 على الأقل.",
@@ -156,6 +159,9 @@ Note that this setting is common to both Flashcards and Notes. : أدخل مسا
     MAX_INTERVAL_MIN_WARNING: "يجب أن يكون الحد الأقصى للفاصل الزمني لمدة يوم واحد على الأقل.",
     MAX_LINK_CONTRIB: "أقصى مساهمة ارتباط",
     MAX_LINK_CONTRIB_DESC: "أقصى مساهمة للسهولة المرجحة للملاحظات المرتبطة بالسهولة الأولية.",
+    EASY_INTERVAL: "Easy Interval (days)", 
+    GOOD_INTERVAL: "Good Interval (days)", 
+    HARD_INTERVAL: "Hard Interval (days)", 
     LOGGING: "تسجيل",
     DISPLAY_DEBUG_INFO: "عرض معلومات التصحيح على وحدة تحكم المطور",
     DISPLAY_PARSER_DEBUG_INFO:
