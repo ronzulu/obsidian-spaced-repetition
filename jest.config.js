@@ -27,10 +27,13 @@ module.exports = {
     ],
     coveragePathIgnorePatterns: [
         "/node_modules/",
+        "src/algorithms/base/IAlgorithmGui",
         "src/algorithms/base/ISrsAlgorithm",
         "src/algorithms/base/RepItemScheduleInfo",
         "src/algorithms/base/SrsAlgorithm",
+        "src/algorithms/osr/AlgorithmGui_Osr",
         "src/algorithms/osr/ObsidianVaultNoteLinkInfoFinder",
+        "src/algorithms/specifiedIntervals/AlgorithmGui_SpecifiedIntervals", 
         "src/dataStoreAlgorithm/DataStoreAlgorithm",
         "src/dataStoreAlgorithm/IDataStoreAlgorithm",
         "src/lang/locale/",

@@ -11,7 +11,7 @@ import { UnitTestSRFile } from "./helpers/UnitTestSRFile";
 import { RepItemScheduleInfo } from "src/algorithms/base/RepItemScheduleInfo";
 import { RepItemScheduleInfo_Osr } from "src/algorithms/osr/RepItemScheduleInfo_Osr";
 import { NoteEaseList } from "src/NoteEaseList";
-import { unitTestSetup_StandardDataStoreAlgorithm } from "./helpers/UnitTestSetup";
+import { unitTestSetup_DataStoreAlgorithm } from "./helpers/UnitTestSetup";
 import { Card } from "src/Card";
 
 let parserWithDefaultSettings: NoteQuestionParser = createTest_NoteQuestionParser(DEFAULT_SETTINGS);
@@ -23,7 +23,7 @@ let parser_ConvertFoldersToDecks: NoteQuestionParser = createTest_NoteQuestionPa
 
 beforeAll(() => {
     setupStaticDateProvider_20230906();
-    unitTestSetup_StandardDataStoreAlgorithm(DEFAULT_SETTINGS);
+    unitTestSetup_DataStoreAlgorithm(DEFAULT_SETTINGS);
 });
 
 describe("No flashcard questions", () => {

@@ -18,11 +18,4 @@ export class Card extends RepetitionItem {
     get cardListType(): CardListType {
         return this.isNew ? CardListType.NewCard : CardListType.DueCard;
     }
-
-    formatSchedule(): string {
-        let result: string = "";
-        if (this.hasSchedule) result = this.scheduleInfo.formatCardScheduleForHtmlComment();
-        else result = "New";
-        return result;
-    }
 }

@@ -3,12 +3,12 @@ import { unitTest_GetAllTagsFromTextEx, unitTest_ParseForOutgoingLinks } from ".
 import { UnitTestOsrCore } from "./UnitTestOsrCore";
 import { DEFAULT_SETTINGS } from "src/settings";
 import { UnitTestLinkInfoFinder } from "./UnitTestLinkInfoFinder";
-import { unitTestSetup_StandardDataStoreAlgorithm } from "./UnitTestSetup";
+import { unitTestSetup_DataStoreAlgorithm } from "./UnitTestSetup";
 
 let linkInfoFinder: UnitTestLinkInfoFinder;
 
 beforeAll(() => {
-    unitTestSetup_StandardDataStoreAlgorithm(DEFAULT_SETTINGS);
+    unitTestSetup_DataStoreAlgorithm(DEFAULT_SETTINGS);
 });
 
 describe("unitTest_GetAllTagsFromTextEx", () => {

@@ -2,12 +2,12 @@ import { CardListType, Deck } from "src/Deck";
 import { TopicPath } from "src/TopicPath";
 import { SampleItemDecks } from "./SampleItems";
 import { Card } from "src/Card";
-import { unitTestSetup_StandardDataStoreAlgorithm } from "./helpers/UnitTestSetup";
+import { unitTestSetup_DataStoreAlgorithm } from "./helpers/UnitTestSetup";
 import { NoteEaseList } from "src/NoteEaseList";
 import { DEFAULT_SETTINGS } from "src/settings";
 
 beforeAll(() => {
-    unitTestSetup_StandardDataStoreAlgorithm(DEFAULT_SETTINGS);
+    unitTestSetup_DataStoreAlgorithm(DEFAULT_SETTINGS);
 });
 
 describe("constructor", () => {

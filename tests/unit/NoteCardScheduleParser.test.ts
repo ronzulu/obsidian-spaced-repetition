@@ -3,13 +3,13 @@ import { TICKS_PER_DAY } from "src/constants";
 import { DataStore } from "src/dataStore/base/DataStore";
 import { DEFAULT_SETTINGS } from "src/settings";
 import { setupStaticDateProvider_20230906 } from "src/util/DateProvider";
-import { unitTestSetup_StandardDataStoreAlgorithm } from "./helpers/UnitTestSetup";
+import { unitTestSetup_DataStoreAlgorithm } from "./helpers/UnitTestSetup";
 import { RepItemScheduleInfo_Osr } from "src/algorithms/osr/RepItemScheduleInfo_Osr";
 import { RepItemScheduleInfo } from "src/algorithms/base/RepItemScheduleInfo";
 
 beforeAll(() => {
     setupStaticDateProvider_20230906();
-    unitTestSetup_StandardDataStoreAlgorithm(DEFAULT_SETTINGS);
+    unitTestSetup_DataStoreAlgorithm(DEFAULT_SETTINGS);
 });
 
 test("No schedule info for question", () => {

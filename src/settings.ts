@@ -6,6 +6,7 @@ import { setDebugParser } from "./parser";
 import { SrsAlgorithmType } from "./algorithms/base/ISrsAlgorithm";
 import { AlgorithmGuiFactory, IAlgorithmGui } from "./algorithms/base/IAlgorithmGui";
 import { AlgorithmGui_Osr } from "./algorithms/osr/AlgorithmGui_Osr";
+import { SrsAlgorithm, SrsAlgorithmFactory } from "./algorithms/base/SrsAlgorithm";
 
 export interface SRSettings {
     // flashcards
@@ -867,7 +868,7 @@ export class SRSettingTab extends PluginSettingTab {
                 .addOptions(algorithmTypeNames)
                 .setValue(this.plugin.data.settings.algorithmType)
                 .onChange(async (value) => {
-                    this.plugin.data.settings.algorithmType = value;
+                    this.setAlgorithmType(value);
                     await this.plugin.savePluginData();
 
                     // Need to redisplay as algorithm settings are dependent on the selected algorithm type
@@ -882,6 +883,11 @@ export class SRSettingTab extends PluginSettingTab {
         const algorithmType: SrsAlgorithmType = SrsAlgorithmType[typedTypeName];
         const algorithmGui: IAlgorithmGui = AlgorithmGuiFactory.create(algorithmType);
         algorithmGui.createSettings(containerEl, this.plugin.data.settings, this);
+    }
+
+    private setAlgorithmType(algorithmName: string) {
+        this.plugin.data.settings.algorithmType = algorithmName;
+        SrsAlgorithm.instance = SrsAlgorithmFactory.create(this.plugin.data.settings);
     }
 
     private async tabDeveloper(containerEl: HTMLElement): Promise<void> {

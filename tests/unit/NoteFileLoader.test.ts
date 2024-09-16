@@ -5,12 +5,12 @@ import { DEFAULT_SETTINGS } from "src/settings";
 import { TextDirection } from "src/util/TextDirection";
 import { UnitTestSRFile } from "./helpers/UnitTestSRFile";
 import { NoteEaseList } from "src/NoteEaseList";
-import { unitTestSetup_StandardDataStoreAlgorithm } from "./helpers/UnitTestSetup";
+import { unitTestSetup_DataStoreAlgorithm } from "./helpers/UnitTestSetup";
 
 var noteFileLoader: NoteFileLoader = new NoteFileLoader(DEFAULT_SETTINGS);
 
 beforeAll(() => {
-    unitTestSetup_StandardDataStoreAlgorithm(DEFAULT_SETTINGS);
+    unitTestSetup_DataStoreAlgorithm(DEFAULT_SETTINGS);
 });
 
 describe("load", () => {

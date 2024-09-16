@@ -25,7 +25,7 @@ import { INoteEaseList, NoteEaseList } from "src/NoteEaseList";
 import { QuestionPostponementList, IQuestionPostponementList } from "src/QuestionPostponementList";
 import { UnitTestSRFile } from "./helpers/UnitTestSRFile";
 import { ReviewResponse } from "src/algorithms/base/RepetitionItem";
-import { unitTestSetup_StandardDataStoreAlgorithm } from "./helpers/UnitTestSetup";
+import { unitTestSetup_DataStoreAlgorithm } from "./helpers/UnitTestSetup";
 import { SrsAlgorithm } from "src/algorithms/base/SrsAlgorithm";
 import { CardDueDateHistogram } from "src/DueDateHistogram";
 
@@ -105,7 +105,7 @@ class TestContext {
     ): TestContext {
         const settingsClone: SRSettings = { ...settings };
         let cardSequencer: IDeckTreeIterator = new DeckTreeIterator(iteratorOrder, null);
-        unitTestSetup_StandardDataStoreAlgorithm(settingsClone);
+        unitTestSetup_DataStoreAlgorithm(settingsClone);
         let cardPostponementList: QuestionPostponementList = new QuestionPostponementList(
             null,
             settingsClone,
@@ -137,7 +137,7 @@ class TestContext {
     }
 }
 
-interface Info1 {
+export interface Info1 {
     cardQ2_PreReviewText: string;
     cardQ2_PostReviewEase: number;
     cardQ2_PostReviewInterval: number;
@@ -145,9 +145,10 @@ interface Info1 {
     cardQ2_PostReviewText: string;
 }
 
-async function checkReviewResponse_ReviewMode(
+export async function checkReviewResponse_ReviewMode(
     reviewResponse: ReviewResponse,
     info: Info1,
+    settings: SRSettings
 ): Promise<void> {
     let text: string = `
 #flashcards Q1::A1
@@ -158,7 +159,7 @@ async function checkReviewResponse_ReviewMode(
     let c: TestContext = TestContext.Create(
         order_DueFirst_Sequential,
         FlashcardReviewMode.Review,
-        DEFAULT_SETTINGS,
+        settings,
         text,
         fakeFilePath,
     );
@@ -495,7 +496,7 @@ describe("processReview", () => {
                     cardQ2_PostReviewText: `Q2::A2
 <!--SR:!2023-09-21,15,290-->`,
                 };
-                await checkReviewResponse_ReviewMode(ReviewResponse.Easy, expected);
+                await checkReviewResponse_ReviewMode(ReviewResponse.Easy, expected, DEFAULT_SETTINGS);
             });
         });
 

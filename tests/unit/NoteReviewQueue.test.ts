@@ -6,13 +6,13 @@ import {
     setupStaticDateProvider,
     setupStaticDateProvider_20230906,
 } from "src/util/DateProvider";
-import { unitTestSetup_StandardDataStoreAlgorithm } from "./helpers/UnitTestSetup";
+import { unitTestSetup_DataStoreAlgorithm } from "./helpers/UnitTestSetup";
 import { DueDateHistogram } from "src/DueDateHistogram";
 import { NoteReviewQueue } from "src/NoteReviewQueue";
 
 beforeAll(() => {
     setupStaticDateProvider_20230906();
-    unitTestSetup_StandardDataStoreAlgorithm(DEFAULT_SETTINGS);
+    unitTestSetup_DataStoreAlgorithm(DEFAULT_SETTINGS);
 });
 
 function checkHistogramValue(histogram: DueDateHistogram, nDays: number, expectedValue: number) {

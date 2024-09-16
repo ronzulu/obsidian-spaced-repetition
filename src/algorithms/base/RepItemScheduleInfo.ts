@@ -24,6 +24,4 @@ export abstract class RepItemScheduleInfo {
     delayedBeforeReviewDaysInt(): number {
         return Math.max(0, Math.floor(this.delayedBeforeReviewTicks / TICKS_PER_DAY));
     }
-
-    abstract formatCardScheduleForHtmlComment(): string;
 }

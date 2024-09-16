@@ -2,7 +2,7 @@ import { OsrCore } from "src/OsrCore";
 import { UnitTestOsrCore } from "./helpers/UnitTestOsrCore";
 import { DEFAULT_SETTINGS, SRSettings } from "src/settings";
 import { CardListType } from "src/Deck";
-import { unitTestSetup_StandardDataStoreAlgorithm } from "./helpers/UnitTestSetup";
+import { unitTestSetup_DataStoreAlgorithm } from "./helpers/UnitTestSetup";
 import { NoteReviewDeck, SchedNote } from "src/NoteReviewDeck";
 import { DateUtil, setupStaticDateProvider_20230906 } from "src/util/DateProvider";
 import { formatDate_YYYY_MM_DD } from "src/util/utils";
@@ -39,7 +39,7 @@ function checkScheduledNote(actual: SchedNote, expected: any): void {
 
 beforeAll(() => {
     setupStaticDateProvider_20230906();
-    unitTestSetup_StandardDataStoreAlgorithm(DEFAULT_SETTINGS);
+    unitTestSetup_DataStoreAlgorithm(DEFAULT_SETTINGS);
 });
 
 test("No questions in the text; no files tagged as notes", async () => {

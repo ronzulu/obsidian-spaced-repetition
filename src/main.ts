@@ -29,7 +29,7 @@ import { QuestionPostponementList } from "./QuestionPostponementList";
 import { TextDirection } from "./util/TextDirection";
 import { convertToStringOrEmpty } from "./util/utils";
 import { ReviewResponse } from "./algorithms/base/RepetitionItem";
-import { SrsAlgorithm } from "./algorithms/base/SrsAlgorithm";
+import { SrsAlgorithm, SrsAlgorithmFactory } from "./algorithms/base/SrsAlgorithm";
 import { DataStore } from "./dataStore/base/DataStore";
 import { DataStoreAlgorithm } from "./dataStoreAlgorithm/DataStoreAlgorithm";
 import { DataStoreInNote_AlgorithmOsr } from "./dataStoreAlgorithm/DataStoreInNote_AlgorithmOsr";
@@ -451,7 +451,7 @@ export default class SRPlugin extends Plugin {
     setupDataStoreAndAlgorithmInstances(settings: SRSettings) {
         // For now we can hardcoded as we only support the one data store and one algorithm
         DataStore.instance = new DataStore_StoreInNote(settings);
-        SrsAlgorithm.instance = new SrsAlgorithm_Osr(settings);
+        SrsAlgorithm.instance = SrsAlgorithmFactory.create(settings);
         DataStoreAlgorithm.instance = new DataStoreInNote_AlgorithmOsr(settings);
     }
 
