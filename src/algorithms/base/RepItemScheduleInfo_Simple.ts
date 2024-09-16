@@ -1,9 +1,9 @@
 import { Moment } from "moment";
-import { RepItemScheduleInfo } from "../base/RepItemScheduleInfo";
+import { RepItemScheduleInfo } from "./RepItemScheduleInfo";
 import { SRSettings } from "src/settings";
 import { DateUtil, globalDateProvider } from "src/util/DateProvider";
 
-export class RepItemScheduleInfo_Osr extends RepItemScheduleInfo {
+export class RepItemScheduleInfo_Simple extends RepItemScheduleInfo {
     // A question can have multiple cards. The schedule info for all sibling cards are formatted together
     // in a single <!--SR: --> comment, such as:
     // <!--SR:!2023-09-02,4,270!2023-09-02,5,270!2023-09-02,6,270!2023-09-02,7,270-->
@@ -33,18 +33,24 @@ export class RepItemScheduleInfo_Osr extends RepItemScheduleInfo {
         // We always want the correct schedule format, so we use the dummy due date if there is no schedule for a card
         const dateStr: string = this.dueDate
             ? this.formatDueDate()
-            : RepItemScheduleInfo_Osr.dummyDueDateForNewCard;
+            : RepItemScheduleInfo_Simple.dummyDueDateForNewCard;
         return `!${dateStr},${this.interval},${this.latestEase}`;
     }
 
-    static get initialInterval(): number {
+    public static get initialInterval(): number {
         return 1.0;
     }
 
-    static getDummyScheduleForNewCard(settings: SRSettings): RepItemScheduleInfo_Osr {
-        return RepItemScheduleInfo_Osr.fromDueDateStr(
-            RepItemScheduleInfo_Osr.dummyDueDateForNewCard,
-            RepItemScheduleInfo_Osr.initialInterval,
+    static create(interval: number, ease: number) {
+        const dueDate = globalDateProvider.today.add(interval, "d");
+        const delayBeforeReview = 0;
+        return new RepItemScheduleInfo_Simple(dueDate, interval, ease, delayBeforeReview);
+    }
+
+    static getDummyScheduleForNewCard(settings: SRSettings): RepItemScheduleInfo_Simple {
+        return RepItemScheduleInfo_Simple.fromDueDateStr(
+            RepItemScheduleInfo_Simple.dummyDueDateForNewCard,
+            RepItemScheduleInfo_Simple.initialInterval,
             settings.baseEase,
         );
     }
@@ -56,6 +62,6 @@ export class RepItemScheduleInfo_Osr extends RepItemScheduleInfo {
         delayedBeforeReviewTicks: number | null = null,
     ) {
         const dueDate: Moment = DateUtil.dateStrToMoment(dueDateStr);
-        return new RepItemScheduleInfo_Osr(dueDate, interval, ease, delayedBeforeReviewTicks);
+        return new RepItemScheduleInfo_Simple(dueDate, interval, ease, delayedBeforeReviewTicks);
     }
 }

@@ -199,7 +199,7 @@ describe("Algorithm - SM2_Osr", () => {
     });
 });
 
-describe.skip("Algorithm - SpecifiedIntervals", () => {
+describe.only("Algorithm - SpecifiedIntervals", () => {
     const settings: SRSettings = { ...DEFAULT_SETTINGS };
     settings.algorithmType = "SpecifiedIntervals";
 
@@ -253,11 +253,11 @@ describe.skip("Algorithm - SpecifiedIntervals", () => {
 
         const expected: Info1 = {
             cardQ2_PreReviewText: "Q2::A2 <!--SR:!2023-09-02,4,270-->",
-            cardQ2_PostReviewEase: 290,
-            cardQ2_PostReviewInterval: 15,
-            cardQ2_PostReviewDueDate: "2023-09-21", // 15 days after the unit testing fixed date of 2023-09-06
+            cardQ2_PostReviewEase: 0,
+            cardQ2_PostReviewInterval: 7,
+            cardQ2_PostReviewDueDate: "2023-09-13", // 7 days after the unit testing fixed date of 2023-09-06
             cardQ2_PostReviewText: `Q2::A2
-<!--SR:!2023-09-21,15,290-->`,
+<!--SR:!2023-09-13,7,0-->`,
         };
         await checkReviewResponse_ReviewMode(ReviewResponse.Easy, expected, settings);
     });

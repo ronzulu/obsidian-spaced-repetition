@@ -3,7 +3,7 @@ import { RepItemStorageInfo } from "../base/RepItemStorageInfo";
 import { LEGACY_SCHEDULING_EXTRACTOR, MULTI_SCHEDULING_EXTRACTOR } from "src/constants";
 import { Moment } from "moment";
 import { DateUtil, globalDateProvider } from "src/util/DateProvider";
-import { RepItemScheduleInfo_Osr } from "src/algorithms/osr/RepItemScheduleInfo_Osr";
+import { RepItemScheduleInfo_Simple } from "src/algorithms/base/RepItemScheduleInfo_Simple";
 import { formatDate_YYYY_MM_DD } from "src/util/utils";
 import { Question } from "src/Question";
 import { SRSettings } from "src/settings";
@@ -40,14 +40,14 @@ export class DataStore_StoreInNote implements IDataStore {
             let info: RepItemScheduleInfo;
             if (
                 dueDate == null ||
-                formatDate_YYYY_MM_DD(dueDate) == RepItemScheduleInfo_Osr.dummyDueDateForNewCard
+                formatDate_YYYY_MM_DD(dueDate) == RepItemScheduleInfo_Simple.dummyDueDateForNewCard
             ) {
                 info = null;
             } else {
                 const delayBeforeReviewTicks: number =
                     dueDate.valueOf() - globalDateProvider.today.valueOf();
 
-                info = new RepItemScheduleInfo_Osr(dueDate, interval, ease, delayBeforeReviewTicks);
+                info = new RepItemScheduleInfo_Simple(dueDate, interval, ease, delayBeforeReviewTicks);
             }
             result.push(info);
         }

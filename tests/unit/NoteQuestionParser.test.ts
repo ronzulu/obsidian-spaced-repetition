@@ -9,7 +9,7 @@ import { setupStaticDateProvider_20230906 } from "src/util/DateProvider";
 import { TextDirection } from "src/util/TextDirection";
 import { UnitTestSRFile } from "./helpers/UnitTestSRFile";
 import { RepItemScheduleInfo } from "src/algorithms/base/RepItemScheduleInfo";
-import { RepItemScheduleInfo_Osr } from "src/algorithms/osr/RepItemScheduleInfo_Osr";
+import { RepItemScheduleInfo_Simple } from "src/algorithms/base/RepItemScheduleInfo_Simple";
 import { NoteEaseList } from "src/NoteEaseList";
 import { unitTestSetup_DataStoreAlgorithm } from "./helpers/UnitTestSetup";
 import { Card } from "src/Card";
@@ -103,7 +103,7 @@ A::B
 
         let folderTopicPath: TopicPath = TopicPath.emptyPath;
         let delayDays = 3 - 6;
-        let scheduleInfo = RepItemScheduleInfo_Osr.fromDueDateStr("2023-09-03", 1, 230);
+        let scheduleInfo = RepItemScheduleInfo_Simple.fromDueDateStr("2023-09-03", 1, 230);
         scheduleInfo.delayedBeforeReviewTicks = delayDays * TICKS_PER_DAY;
         let card1 = {
             cardIdx: 0,
@@ -207,7 +207,7 @@ A::B ^d7cee0
         let folderTopicPath: TopicPath = TopicPath.emptyPath;
         let card1 = {
             cardIdx: 0,
-            scheduleInfo: null as RepItemScheduleInfo_Osr,
+            scheduleInfo: null as RepItemScheduleInfo_Simple,
         };
         let expected = [
             {
@@ -249,7 +249,7 @@ A::B ^d7cee0
 
         let folderTopicPath: TopicPath = TopicPath.emptyPath;
         let delayDays = 3 - 6;
-        let scheduleInfo = RepItemScheduleInfo_Osr.fromDueDateStr("2023-09-03", 1, 230);
+        let scheduleInfo = RepItemScheduleInfo_Simple.fromDueDateStr("2023-09-03", 1, 230);
         scheduleInfo.delayedBeforeReviewTicks = delayDays * TICKS_PER_DAY;
 
         let card1 = {
@@ -296,7 +296,7 @@ A::B <!--SR:!2023-09-03,1,230--> ^d7cee0
 
         let folderTopicPath: TopicPath = TopicPath.emptyPath;
         let delayDays = 3 - 6;
-        let scheduleInfo = RepItemScheduleInfo_Osr.fromDueDateStr("2023-09-03", 1, 230);
+        let scheduleInfo = RepItemScheduleInfo_Simple.fromDueDateStr("2023-09-03", 1, 230);
         scheduleInfo.delayedBeforeReviewTicks = delayDays * TICKS_PER_DAY;
         let card1 = {
             cardIdx: 0,
@@ -341,7 +341,7 @@ A::B <!--SR:!2023-09-03,1,230--> ^d7cee0
 
         let folderTopicPath: TopicPath = TopicPath.emptyPath;
         let delayDays = 3 - 6;
-        let scheduleInfo = RepItemScheduleInfo_Osr.fromDueDateStr("2023-09-03", 1, 230);
+        let scheduleInfo = RepItemScheduleInfo_Simple.fromDueDateStr("2023-09-03", 1, 230);
         scheduleInfo.delayedBeforeReviewTicks = delayDays * TICKS_PER_DAY;
         let card1 = {
             cardIdx: 0,
@@ -886,7 +886,7 @@ function checkQuestion1(question: Question) {
         isDue: false,
         front: "Q1",
         back: "A1",
-        scheduleInfo: null as RepItemScheduleInfo_Osr,
+        scheduleInfo: null as RepItemScheduleInfo_Simple,
     };
     let expected = {
         questionType: CardType.SingleLineBasic,
@@ -910,7 +910,7 @@ function checkQuestion2(question: Question) {
         isDue: false,
         front: "Q2",
         back: "A2",
-        scheduleInfo: null as RepItemScheduleInfo_Osr,
+        scheduleInfo: null as RepItemScheduleInfo_Simple,
     };
     let expected = {
         questionType: CardType.SingleLineBasic,

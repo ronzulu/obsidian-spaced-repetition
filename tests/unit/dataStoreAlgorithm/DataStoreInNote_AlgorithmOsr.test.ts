@@ -2,7 +2,7 @@ import { DataStoreInNote_AlgorithmOsr } from "src/dataStoreAlgorithm/DataStoreIn
 import { DEFAULT_SETTINGS, SRSettings } from "src/settings";
 import { UnitTestSRFile } from "../helpers/UnitTestSRFile";
 import { RepItemScheduleInfo } from "src/algorithms/base/RepItemScheduleInfo";
-import { RepItemScheduleInfo_Osr } from "src/algorithms/osr/RepItemScheduleInfo_Osr";
+import { RepItemScheduleInfo_Simple } from "src/algorithms/base/RepItemScheduleInfo_Simple";
 import { setupStaticDateProvider_20230906 } from "src/util/DateProvider";
 import { Card } from "src/Card";
 
@@ -21,7 +21,7 @@ created: 2024-01-17
 A very interesting note
 `;
         let file: UnitTestSRFile = new UnitTestSRFile(noteText);
-        const scheduleInfo: RepItemScheduleInfo_Osr = RepItemScheduleInfo_Osr.fromDueDateStr(
+        const scheduleInfo: RepItemScheduleInfo_Simple = RepItemScheduleInfo_Simple.fromDueDateStr(
             "2023-10-06",
             25,
             263,
@@ -45,7 +45,7 @@ describe("formatCardSchedule", () => {
         const settings: SRSettings = { ...DEFAULT_SETTINGS };
         const instance: DataStoreInNote_AlgorithmOsr = new DataStoreInNote_AlgorithmOsr(settings);
 
-        const scheduleInfo: RepItemScheduleInfo_Osr = RepItemScheduleInfo_Osr.fromDueDateStr(
+        const scheduleInfo: RepItemScheduleInfo_Simple = RepItemScheduleInfo_Simple.fromDueDateStr(
             "2023-10-06",
             25,
             263,
@@ -60,7 +60,7 @@ describe("formatCardSchedule", () => {
         const settings: SRSettings = { ...DEFAULT_SETTINGS };
         const instance: DataStoreInNote_AlgorithmOsr = new DataStoreInNote_AlgorithmOsr(settings);
 
-        const scheduleInfo: RepItemScheduleInfo_Osr = new RepItemScheduleInfo_Osr(
+        const scheduleInfo: RepItemScheduleInfo_Simple = new RepItemScheduleInfo_Simple(
             null,
             25,
             303,

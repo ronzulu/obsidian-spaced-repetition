@@ -1,17 +1,18 @@
-import { SRSettings } from "src/settings";
+import { SRSettings, SRSettings_Algorithm_SpecifiedIntervals } from "src/settings";
 import { ISrsAlgorithm } from "../base/ISrsAlgorithm";
 import { RepItemScheduleInfo } from "../base/RepItemScheduleInfo";
 import { ReviewResponse } from "../base/RepetitionItem";
 import { OsrNoteGraph } from "../osr/OsrNoteGraph";
 import { DueDateHistogram } from "src/DueDateHistogram";
-import { RepItemScheduleInfo_Osr } from "../osr/RepItemScheduleInfo_Osr";
+import { RepItemScheduleInfo_Simple } from "../base/RepItemScheduleInfo_Simple";
 import { Note } from "src/Note";
+import { globalDateProvider } from "src/util/DateProvider";
 
 export class SrsAlgorithm_SpecifiedIntervals implements ISrsAlgorithm {
-    private settings: SRSettings;
+    private settings: SRSettings_Algorithm_SpecifiedIntervals;
 
     constructor(settings: SRSettings) {
-        this.settings = settings;
+        this.settings = settings.algorithmSpecifiedIntervals;
     }
 
     static get initialInterval(): number {
@@ -19,51 +20,69 @@ export class SrsAlgorithm_SpecifiedIntervals implements ISrsAlgorithm {
     }
 
     noteCalcNewSchedule(
-        notePath: string,
-        _: OsrNoteGraph,
+        _1: string,
+        _2: OsrNoteGraph,
         response: ReviewResponse,
-        dueDateNoteHistogram: DueDateHistogram,
+        _3: DueDateHistogram,
     ): RepItemScheduleInfo {
-        throw Error("there is no SrsAlgorithm instance.");
+        const interval: number = this.getIntervalForReview(response);
+        // Unlike the OSR algorithm, the latest ease is not used
+        const ease: number = 0;
+        return RepItemScheduleInfo_Simple.create(interval, ease);
     }
 
     noteOnLoadedNote(path: string, note: Note, noteEase: number): void {
+        // Unlike the OSR algorithm, nothing to do here
     }
 
     noteCalcUpdatedSchedule(
-        notePath: string,
-        noteSchedule: RepItemScheduleInfo,
+        _1: string,
+        _2: RepItemScheduleInfo,
         response: ReviewResponse,
-        dueDateNoteHistogram: DueDateHistogram,
+        _3: DueDateHistogram,
     ): RepItemScheduleInfo {
-        throw Error("there is no SrsAlgorithm instance.");
-    }
-
-    private calcSchedule(
-        schedule: RepItemScheduleInfo_Osr,
-        response: ReviewResponse,
-        dueDateHistogram: DueDateHistogram,
-    ): RepItemScheduleInfo_Osr {
-        throw Error("there is no SrsAlgorithm instance.");
+        const interval: number = this.getIntervalForReview(response);
+        const ease: number = 0;
+        return RepItemScheduleInfo_Simple.create(interval, ease);
     }
 
     cardGetResetSchedule(): RepItemScheduleInfo {
-        throw Error("there is no SrsAlgorithm instance.");
+        const interval: number = RepItemScheduleInfo_Simple.initialInterval;
+        const ease: number = 0;
+        return RepItemScheduleInfo_Simple.create(interval, ease);
     }
 
     cardGetNewSchedule(
         response: ReviewResponse,
-        notePath: string,
-        dueDateFlashcardHistogram: DueDateHistogram,
+        _1: string,
+        _2: DueDateHistogram,
     ): RepItemScheduleInfo {
-        throw Error("there is no SrsAlgorithm instance.");
+        const interval: number = this.getIntervalForReview(response);
+        // Unlike the OSR algorithm, the latest ease is not used
+        const ease: number = 0;
+        return RepItemScheduleInfo_Simple.create(interval, ease);
     }
 
     cardCalcUpdatedSchedule(
         response: ReviewResponse,
-        cardSchedule: RepItemScheduleInfo,
-        dueDateFlashcardHistogram: DueDateHistogram,
+        _1: RepItemScheduleInfo,
+        _2: DueDateHistogram,
     ): RepItemScheduleInfo {
-        throw Error("there is no SrsAlgorithm instance.");
+        const interval: number = this.getIntervalForReview(response);
+        // Unlike the OSR algorithm, the latest ease is not used
+        const ease: number = 0;
+        return RepItemScheduleInfo_Simple.create(interval, ease);
+    }
+
+    private getIntervalForReview(response: ReviewResponse): number {
+        let result: number;
+        switch (response) {
+            case ReviewResponse.Easy: result = this.settings.easy; break;
+            case ReviewResponse.Good: result = this.settings.good; break;
+            case ReviewResponse.Hard: result = this.settings.hard; break;
+            default:
+                throw Error(`Invalid response: ${response}`);
+        }
+        return result;
     }
 }

@@ -1,7 +1,7 @@
 import { ISRFile } from "src/SRFile";
 import { IDataStoreAlgorithm } from "./IDataStoreAlgorithm";
 import { RepItemScheduleInfo } from "src/algorithms/base/RepItemScheduleInfo";
-import { RepItemScheduleInfo_Osr } from "src/algorithms/osr/RepItemScheduleInfo_Osr";
+import { RepItemScheduleInfo_Simple } from "src/algorithms/base/RepItemScheduleInfo_Simple";
 import { Moment } from "moment";
 import moment from "moment";
 import {
@@ -42,7 +42,7 @@ export class DataStoreInNote_AlgorithmOsr implements IDataStoreAlgorithm {
             const dueDate: Moment = moment(frontmatter.get("sr-due"), ALLOWED_DATE_FORMATS);
             const interval: number = parseFloat(frontmatter.get("sr-interval"));
             const ease: number = parseFloat(frontmatter.get("sr-ease"));
-            result = new RepItemScheduleInfo_Osr(dueDate, interval, ease);
+            result = new RepItemScheduleInfo_Simple(dueDate, interval, ease);
         }
         return result;
     }
@@ -50,7 +50,7 @@ export class DataStoreInNote_AlgorithmOsr implements IDataStoreAlgorithm {
     async noteSetSchedule(note: ISRFile, repItemScheduleInfo: RepItemScheduleInfo): Promise<void> {
         let fileText: string = await note.read();
 
-        const schedInfo: RepItemScheduleInfo_Osr = repItemScheduleInfo as RepItemScheduleInfo_Osr;
+        const schedInfo: RepItemScheduleInfo_Simple = repItemScheduleInfo as RepItemScheduleInfo_Simple;
         const dueString: string = formatDate_YYYY_MM_DD(schedInfo.dueDate);
         const interval: number = schedInfo.interval;
         const ease: number = schedInfo.latestEase;
@@ -95,13 +95,13 @@ export class DataStoreInNote_AlgorithmOsr implements IDataStoreAlgorithm {
     formatCardSchedule(card: Card) {
         let result: string;
         if (card.hasSchedule) {
-            const schedule = card.scheduleInfo as RepItemScheduleInfo_Osr;
+            const schedule = card.scheduleInfo as RepItemScheduleInfo_Simple;
             const dateStr = schedule.dueDate
                 ? formatDate_YYYY_MM_DD(schedule.dueDate)
-                : RepItemScheduleInfo_Osr.dummyDueDateForNewCard;
+                : RepItemScheduleInfo_Simple.dummyDueDateForNewCard;
             result = `!${dateStr},${schedule.interval},${schedule.latestEase}`;
         } else {
-            result = `!${RepItemScheduleInfo_Osr.dummyDueDateForNewCard},${RepItemScheduleInfo_Osr.initialInterval},${this.settings.baseEase}`;
+            result = `!${RepItemScheduleInfo_Simple.dummyDueDateForNewCard},${RepItemScheduleInfo_Simple.initialInterval},${this.settings.baseEase}`;
         }
         return result;
     }
